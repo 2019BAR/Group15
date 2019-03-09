@@ -125,8 +125,10 @@ sd(ProcterGamble$StockPrice)
 
 __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period?
 ```{r}
-#
-#
+CocaCola$Date[which.max(CocaCola$StockPrice)]
+CocaCola$Date[which.min(CocaCola$StockPrice)]
+#1/1/73
+#3/1/80
 ```
 
 
