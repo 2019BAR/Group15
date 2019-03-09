@@ -48,6 +48,7 @@ pacman::p_load(dplyr, d3heatmap)
 
 【1.1】How many rows of data (observations) are in this dataset?
 ```{r}
+#191641
 data = read.csv("data/mvtWeek1.csv")
 nrow(data)
 ```
@@ -62,29 +63,38 @@ data.frame(data)
 
 【1.2】How many variables are in this dataset?
 ```{r}
+#11
 ncol(data)
 ```
 
 
 【1.3】Using the "max" function, what is the maximum value of the variable "ID"?
 ```{r}
+#9181151
 max(data$ID)
 ```
 
 
 【1.4】 What is the minimum value of the variable "Beat"?
 ```{r}
+#111
 min(data$Beat)
 ```
 
 
 【1.5】 How many observations have value TUE Rin the Arrest variable (this is the number of crimes for which an arrest was made)?
 ```{r}
+<<<<<<< HEAD
 sum(Arr_true = data$Arrest == TRUE)
+=======
+#15536
+sum(Arr_true = data$Arrest[data$Arrest == TRUE])
+>>>>>>> c647881f9c6adced17e08f5401e740e12319b19c
 ```
 
 【1.6】 How many observations have a LocationDescription value of ALLEY?
 ```{r}
+#2308
 Alley = data[data$LocationDescription =="ALLEY", ]
 nrow(Alley)
 ```
@@ -104,6 +114,7 @@ nrow(Alley)
 + Hour:Minute Month/Day/Year
 + Hour:Minute Day/Month/Year
 
+<<<<<<< HEAD
 ```{r fig.height=2.5, fig.width=8}
 #Month/Day/Year Hour:Minute
 ```
@@ -112,21 +123,56 @@ nrow(Alley)
 【2.2】 What is the month and year of the median date in our dataset? 
 ```{r}
 median(as.Date(data$Date,"%m/%d/%Y"))
+=======
+```{r}
+#
+ts = as.POSIXct(data$Date, format="%m/%d/%y %H:%M")
+head(ts) 
+```
+
+```{r}
+#
+```
+
+```{r}
+#
+```
+
+```{r fig.height=2.5, fig.width=8}
+#
+```
+
+
+【2.2】 What is the month and year of the median date in our dataset? 
+```{r}
+#2006-05
+median(ts)
+=======
+
+【2.2】 What is the month and year of the median date in our dataset? 
+```{r}
+data$Date [(nrow(data)/2)]
+>>>>>>> fdc75c995757a925b0f409e4bc78f5a98553a26e
+>>>>>>> c647881f9c6adced17e08f5401e740e12319b19c
 ```
 
 【2.3】 In which month did the fewest motor vehicle thefts occur?
 ```{r}
-#
+#2月
+head(sort(table(format(ts,"%m"))), 1)
+
 ```
 
 【2.4】 On which weekday did the most motor vehicle thefts occur?
 ```{r}
-#
+#5月
+tail(sort(table(format(ts, "%u"))),1)
 ```
 
 【2.5】 Which month has the largest number of motor vehicle thefts for which an arrest was made?
 ```{r}
-#
+#1月
+tail(sort(table(format(ts[data$Arrest], "%m"))),1)
 ```
 
 <br><br>
@@ -137,17 +183,21 @@ median(as.Date(data$Date,"%m/%d/%Y"))
 
 【3.1】 (a) In general, does it look like crime increases or decreases from 2002 - 2012? (b) In general, does it look like crime increases or decreases from 2005 - 2008? (c) In general, does it look like crime increases or decreases from 2009 - 2011?
 ```{r}
-#
+#(a)decrease (b)decrease (c)increase
+hist(ts,'year',las=2)
 ```
 
 【3.2】 Does it look like there were more crimes for which arrests were made in the first half of the time period or the second half of the time period?
 ```{r}
-#
+#yes
+median(ts)
+table(ts > as.POSIXct("2007-01-01"))
 ```
 
 【3.3】 For what proportion of motor vehicle thefts in 2001 was an arrest made?
 ```{r}
 #
+
 ```
 
 【3.4】 For what proportion of motor vehicle thefts in 2007 was an arrest made?
@@ -169,27 +219,32 @@ median(as.Date(data$Date,"%m/%d/%Y"))
 【4.1】 Which locations are the top five locations for motor vehicle thefts, excluding the "Other" category? You should select 5 of the following options.
 
 ```{r}
-#
+#DRIVEWAY - RESIDENTIAL GAS STATION  ALLEY PARKING LOT GARAGE(NON.RESID.)   STREET 
+tail(sort(table(mvtWeek1$LocationDescription)))[-4]
 ```
 
 【4.2】 How many observations are in Top5?
 ```{r}
-#
+#177510
+sum(tail(sort(table(mvtWeek1$LocationDescription)))[-4])
 ```
 
 【4.3】 One of the locations has a much higher arrest rate than the other locations. Which is it? 
 ```{r}
-#
+#STREET 
+which.max(table(mvtWeek1$LocationDescription))
 ```
 
 【4.4】 On which day of the week do the most motor vehicle thefts at gas stations happen?
 ```{r}
-#
+#禮拜六
+which.max(table(format(ts[data$LocationDescription=="GAS STATION"], "%u")))
 ```
 
 【4.5】 On which day of the week do the fewest motor vehicle thefts in residential driveways happen?
 ```{r}
-#
+#禮拜六
+which.min(table(format(ts[data$LocationDescription=="DRIVEWAY - RESIDENTIAL"], "%u")))
 ```
 
 
