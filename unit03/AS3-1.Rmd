@@ -72,7 +72,7 @@ pacman::p_load(dplyr, d3heatmap)
 
 【1.4】 What is the minimum value of the variable "Beat"?
 ```{r}
-#
+min(data$Beat)
 ```
 
 
