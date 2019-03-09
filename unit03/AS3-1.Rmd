@@ -104,6 +104,7 @@ nrow(Alley)
 【2.1】 In what format are the entries in the variable Date?
 
 + Month/Day/Year Hour:Minute
+<<<<<<< HEAD
 + Day/Month/Year Hour:Minute
 + Hour:Minute Month/Day/Year
 + Hour:Minute Day/Month/Year
@@ -131,6 +132,12 @@ head(ts)
 ```{r}
 #2006-05
 median(ts)
+=======
+
+【2.2】 What is the month and year of the median date in our dataset? 
+```{r}
+data$Date [(nrow(data)/2)]
+>>>>>>> fdc75c995757a925b0f409e4bc78f5a98553a26e
 ```
 
 【2.3】 In which month did the fewest motor vehicle thefts occur?
