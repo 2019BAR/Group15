@@ -41,6 +41,13 @@ fggggg
 
 + `Date`：日期
 + `StockPrice`：給定月份公司的平均股價
+```{r}
+IBM = read.csv("data/IBMStock.csv")
+GE = read.csv("data/GEStock.csv")
+ProcterGamble = read.csv("data/ProcterGambleStock.csv")
+CocaCola = read.csv("data/CocaColaStock.csv")
+Boeing = read.csv("data/BoeingStock.csv")
+```
 
 在這個案例，我們將看看這些公司的股票動態如何隨著時間的推移而發生變化。
 
@@ -50,51 +57,66 @@ fggggg
 
 __§ 1.1__ Our five datasets all have the same number of observations. How many observations are there in each data set?
 ```{r}
-#
-#
+nrow(IBM)
+nrow(GE)
+nrow(ProcterGamble)
+nrow(CocaCola)
+nrow(Boeing)
+
+#480
 ```
 
 
 __§ 1.2__ What is the earliest year in our datasets?
 ```{r}
-#
-#
+head(IBM$Date)
+head(GE$Date)
+head(ProcterGamble$Date)
+head(CocaCola$Date)
+head(Boeing$Date)
+
+#1/1/70
 ```
 
 __§ 1.3__ What is the latest year in our datasets?
 ```{r}
-#
-#
+tail(IBM$Date)
+tail(GE$Date)
+tail(ProcterGamble$Date)
+tail(CocaCola$Date)
+tail(Boeing$Date)
+
+#12/1/09
 ```
 
 __§ 1.4__ What is the mean stock price of IBM over this time period?
 ```{r}
-#
-#
+mean(IBM$StockPrice)
+#144.4
 ```
 
 __§ 1.5__ What is the minimum stock price of General Electric (GE) over this time period?
 ```{r}
-#
-#
+min(GE$StockPrice)
+#9.294
 ```
 
 __§ 1.6__ What is the maximum stock price of Coca-Cola over this time period?
 ```{r}
-#
-#
+max(CocaCola$StockPrice)
+#146.6
 ```
 
 __§ 1.7__ What is the median stock price of Boeing over this time period?
 ```{r}
-#
-#
+median(Boeing$StockPrice)
+#44.88
 ```
 
 __§ 1.8__ What is the standard deviation of the stock price of Procter & Gamble over this time period?
 ```{r}
-#
-#
+sd(ProcterGamble$StockPrice)
+#18.19
 ```
 
 <br><hr>
