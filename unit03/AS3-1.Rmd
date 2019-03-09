@@ -54,7 +54,8 @@ nrow(data)
 
 檢查各欄位的資料格式
 ```{r}
-summary(data)
+#使用str()可了解個欄位的格式(如factor,logistic,integer,number)
+str(data)
 ```
 
 類別(Factor) versus 字串(Character)
