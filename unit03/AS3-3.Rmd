@@ -49,34 +49,55 @@ pacman::p_load(dplyr)
 
 __§ 1.1__ How many interviewees are in the dataset?
 ```{r}
+<<<<<<< HEAD
 #
 D=read.csv("data/CPSData.csv")
 nrow(D)
 #
+=======
+CPS = read.csv("data/CPSData.csv")
+nrow(CPS)
+#131302
+>>>>>>> 9859a934450beb076e544a17208edcb35d34162a
 ```
 
 __§ 1.2__ Among the interviewees with a value reported for the Industry variable, what is the most common industry of employment? Please enter the name exactly how you see it.
 ```{r}
+<<<<<<< HEAD
 #
 table(D$Region)
 which.max(table(D$Region))
 #
+=======
+summary(CPS$Industry)%>% sort
+#Educational and health services
+>>>>>>> 9859a934450beb076e544a17208edcb35d34162a
 ```
 
 __§ 1.3__ Which state has the fewest interviewees?
 ```{r}
+<<<<<<< HEAD
 #
 sort(table(D$State))
 which.min(table(D$State))
 #
+=======
+summary(CPS$State)%>% sort
+#New Mexico
+>>>>>>> 9859a934450beb076e544a17208edcb35d34162a
 ```
 
 Which state has the largest number of interviewees?
 ```{r}
+<<<<<<< HEAD
 #
 sort(table(D$State))
 which.max(table(D$State))
 #
+=======
+summary(CPS$State)%>% sort
+#California
+>>>>>>> 9859a934450beb076e544a17208edcb35d34162a
 ```
 
 __§ 1.4__ What proportion of interviewees are citizens of the United States?
@@ -96,9 +117,15 @@ __§ 1.5__ For which races are there at least 250 interviewees in the CPS datase
 + White
 
 ```{r}
+<<<<<<< HEAD
 #
 names(table(D$Race)>250)
 #
+=======
+cps2=subset(CPS,CPS$Hispanic==1)
+summary(cps2$Race)
+#American Indian,cBlack, Multiracial,White
+>>>>>>> 9859a934450beb076e544a17208edcb35d34162a
 ```
 
 <br><br> 
