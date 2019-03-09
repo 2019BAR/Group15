@@ -134,14 +134,20 @@ CocaCola$Date[which.min(CocaCola$StockPrice)]
 
 __§ 2.2__ In March of 2000, the technology bubble burst, and a stock market crash occurred. According to this plot, which company's stock dropped more?
 ```{r}
-#
-#
+
 ```
 
 __§ 2.3__ (a) Around 1983, the stock for one of these companies (Coca-Cola or Procter and Gamble) was going up, while the other was going down. Which one was going up? 
 ```{r}
-#
-#
+tscocacola = as.POSIXct(CocaCola$Date, format="%m/%d/%y")
+nucocacola = as.numeric(format(tscocacola,'%y'))
+hist(tscocacola[nucocacola ==83],CocaCola$StockPrice, 
+     xlab="year", ylab = "stockprice", 
+     main = "CocaCola", breaks = "month",las=2) 
+tsProcterGamble= as.POSIXct(ProcterGamble$Date, format="%m/%d/%y")
+plot(tsProcterGamble,ProcterGamble$StockPrice, 
+     xlab="year", ylab = "stockprice", 
+     main = "Procter Gamble", col = "red") 
 ```
 
 (b) In the time period shown in the plot, which stock generally has lower values?
