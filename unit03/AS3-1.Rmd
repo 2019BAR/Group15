@@ -55,6 +55,7 @@ nrow(data)
 檢查各欄位的資料格式
 ```{r}
 summary(data)
+data.frame(data)
 ```
 
 類別(Factor) versus 字串(Character)
@@ -77,9 +78,9 @@ min(data$Beat)
 ```
 
 
-【1.5】 How many observations have value TRUE in the Arrest variable (this is the number of crimes for which an arrest was made)?
+【1.5】 How many observations have value TUE Rin the Arrest variable (this is the number of crimes for which an arrest was made)?
 ```{r}
-sum(Arr_true = data$Arrest[data$Arrest == TRUE])
+sum(Arr_true = data$Arrest == TRUE)
 ```
 
 【1.6】 How many observations have a LocationDescription value of ALLEY?
@@ -102,26 +103,14 @@ nrow(Alley)
 + Hour:Minute Month/Day/Year
 + Hour:Minute Day/Month/Year
 
-```{r}
-#
-```
-
-```{r}
-#
-```
-
-```{r}
-#
-```
-
 ```{r fig.height=2.5, fig.width=8}
-#
+#Month/Day/Year Hour:Minute
 ```
 
 
 【2.2】 What is the month and year of the median date in our dataset? 
 ```{r}
-#
+
 ```
 
 【2.3】 In which month did the fewest motor vehicle thefts occur?
