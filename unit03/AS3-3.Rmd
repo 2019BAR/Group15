@@ -50,30 +50,39 @@ pacman::p_load(dplyr)
 __§ 1.1__ How many interviewees are in the dataset?
 ```{r}
 #
+D=read.csv("data/CPSData.csv")
+nrow(D)
 #
 ```
 
 __§ 1.2__ Among the interviewees with a value reported for the Industry variable, what is the most common industry of employment? Please enter the name exactly how you see it.
 ```{r}
 #
+table(D$Region)
+which.max(table(D$Region))
 #
 ```
 
 __§ 1.3__ Which state has the fewest interviewees?
 ```{r}
 #
+sort(table(D$State))
+which.min(table(D$State))
 #
 ```
 
 Which state has the largest number of interviewees?
 ```{r}
 #
+sort(table(D$State))
+which.max(table(D$State))
 #
 ```
 
 __§ 1.4__ What proportion of interviewees are citizens of the United States?
 ```{r}
 #
+1-(sum(as.numeric(D$Citizenship=="Non-Citizen" , na.rm=TRUE))/ nrow(D))
 #
 ```
 
@@ -88,6 +97,7 @@ __§ 1.5__ For which races are there at least 250 interviewees in the CPS datase
 
 ```{r}
 #
+names(table(D$Race)>250)
 #
 ```
 
@@ -116,6 +126,7 @@ __§ 2.1__ Which variables have at least one interviewee with a missing (NA) val
 
 ```{r}
 #
+
 #
 ```
 
@@ -172,18 +183,23 @@ Which state has the largest proportion of non-metropolitan interviewees, ignorin
 __§ 3.1__ How many observations (codes for metropolitan areas) are there in MetroAreaMap?
 ```{r}
 #
+D2=read.csv("data/CPSData.csv")
+nrow(D2)
 #
 ```
 
 How many observations (codes for countries) are there in CountryMap?
 ```{r}
 #
+D3=read.csv("data/CountryCodes.csv")
+nrow(D3)
 #
 ```
 
 __§ 3.2__ What is the name of the variable that was added to the data frame by the merge() operation?
 ```{r}
 #
+
 #
 ```
 
