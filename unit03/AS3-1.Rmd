@@ -104,7 +104,8 @@ nrow(Alley)
 + Hour:Minute Day/Month/Year
 
 ```{r}
-#
+head(data$Date)
+#看出這個格式為Month/Day/Year Hour:Minute
 ```
 
 ```{r}
@@ -122,7 +123,7 @@ nrow(Alley)
 
 【2.2】 What is the month and year of the median date in our dataset? 
 ```{r}
-#
+
 ```
 
 【2.3】 In which month did the fewest motor vehicle thefts occur?
