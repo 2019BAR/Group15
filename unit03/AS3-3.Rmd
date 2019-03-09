@@ -74,8 +74,9 @@ summary(CPS$State)%>% sort
 
 __§ 1.4__ What proportion of interviewees are citizens of the United States?
 ```{r}
-#
-#
+
+table(CPS$Citizenship== "Non-Citizen") %>% prop.table 
+#Ans：0.9422
 ```
 
 __§ 1.5__ For which races are there at least 250 interviewees in the CPS dataset of Hispanic ethnicity? (Select all that apply.) 
@@ -90,7 +91,7 @@ __§ 1.5__ For which races are there at least 250 interviewees in the CPS datase
 ```{r}
 cps2=subset(CPS,CPS$Hispanic==1)
 summary(cps2$Race)
-#American Indian,cBlack, Multiracial,White
+#American Indian,Black, Multiracial,White
 ```
 
 <br><br> 
@@ -117,8 +118,8 @@ __§ 2.1__ Which variables have at least one interviewee with a missing (NA) val
 + Industry
 
 ```{r}
-#
-#
+#MetroAreaCode,Married,Education,EmploymentStatus,Industry 
+colSums(is.na(CPS))
 ```
 
 __§ 2.2__  Which is the most accurate:
@@ -130,39 +131,42 @@ __§ 2.2__  Which is the most accurate:
 + The Married variable being missing is not related to the Region, Sex, Age, or Citizenship value for the interviewee.
 
 ```{r}
-#
-#
+#The Married variable being missing is related to the Age value for the interviewee.
+table(CPS$Region, is.na(CPS$Married))
+table(CPS$Sex, is.na(CPS$Married))
+table(CPS$Age, is.na(CPS$Married))
+table(CPS$Citizenship, is.na(CPS$Married))
 ```
 
 
 __§ 2.3__ How many states had all interviewees living in a non-metropolitan area (aka they have a missing MetroAreaCode value)? For this question, treat the District of Columbia as a state (even though it is not technically a state).
 ```{r}
-#
-#
+#Alaska,Wyoming,so answer is 2.  
+table(CPS$State,is.na(CPS$MetroAreaCode))
 ```
 
 How many states had all interviewees living in a metropolitan area? Again, treat the District of Columbia as a state.
 ```{r}
-#
-#
+#District of Columbia,New Jersey,Rhode Island,so answer is 3.   
+table(CPS$State,is.na(CPS$MetroAreaCode))
 ```
 
 __§ 2.4__ Which region of the United States has the largest proportion of interviewees living in a non-metropolitan area?
 ```{r}
-#
-#
+# Midwest,34.79%
+table(CPS$Region, is.na(CPS$MetroAreaCode)) %>% prop.table(1)
 ```
 
 __§ 2.5__ Which state has a proportion of interviewees living in a non-metropolitan area closest to 30%?
 ```{r}
-#
-#
+# Wisconsin
+table(CPS$State, is.na(CPS$MetroAreaCode)) %>% prop.table(1)
 ```
 
 Which state has the largest proportion of non-metropolitan interviewees, ignoring states where all interviewees were non-metropolitan?
 ```{r}
-#
-#
+# Montana, 83.6%
+tapply(is.na(CPS$MetroAreaCode), CPS$State, mean) %>%sort()
 ```
 
 <br><br> 
