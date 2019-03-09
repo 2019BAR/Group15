@@ -42,6 +42,7 @@ fggggg
 + `Date`：日期
 + `StockPrice`：給定月份公司的平均股價
 ```{r}
+#讀入data中的csv檔,並命名資料框
 IBM = read.csv("data/IBMStock.csv")
 GE = read.csv("data/GEStock.csv")
 ProcterGamble = read.csv("data/ProcterGambleStock.csv")
@@ -57,6 +58,7 @@ Boeing = read.csv("data/BoeingStock.csv")
 
 __§ 1.1__ Our five datasets all have the same number of observations. How many observations are there in each data set?
 ```{r}
+#從列數判斷有幾個觀察值
 nrow(IBM)
 nrow(GE)
 nrow(ProcterGamble)
@@ -69,6 +71,7 @@ nrow(Boeing)
 
 __§ 1.2__ What is the earliest year in our datasets?
 ```{r}
+#用head函數看日期前六個觀察值
 head(IBM$Date)
 head(GE$Date)
 head(ProcterGamble$Date)
@@ -80,6 +83,7 @@ head(Boeing$Date)
 
 __§ 1.3__ What is the latest year in our datasets?
 ```{r}
+#用tail函數看日期後六個觀察值
 tail(IBM$Date)
 tail(GE$Date)
 tail(ProcterGamble$Date)
@@ -91,30 +95,35 @@ tail(Boeing$Date)
 
 __§ 1.4__ What is the mean stock price of IBM over this time period?
 ```{r}
+#用mean函數算出IBM公司的平均股價
 mean(IBM$StockPrice)
 #144.4
 ```
 
 __§ 1.5__ What is the minimum stock price of General Electric (GE) over this time period?
 ```{r}
+#用min函數算出GE公司的最低股價
 min(GE$StockPrice)
 #9.294
 ```
 
 __§ 1.6__ What is the maximum stock price of Coca-Cola over this time period?
 ```{r}
+#用max函數算出Coca-Cola公司的最高股價
 max(CocaCola$StockPrice)
 #146.6
 ```
 
 __§ 1.7__ What is the median stock price of Boeing over this time period?
 ```{r}
+#用median函數算出Boeing公司的股價中位數
 median(Boeing$StockPrice)
 #44.88
 ```
 
 __§ 1.8__ What is the standard deviation of the stock price of Procter & Gamble over this time period?
 ```{r}
+#用sd函數算出ProcterGamble公司的股價標準差
 sd(ProcterGamble$StockPrice)
 #18.19
 ```
@@ -125,10 +134,11 @@ sd(ProcterGamble$StockPrice)
 
 __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period?
 ```{r}
-CocaCola$Date[which.max(CocaCola$StockPrice)]
-CocaCola$Date[which.min(CocaCola$StockPrice)]
-#1/1/73
-#3/1/80
+#可口可樂公司股價最高的日子
+CocaCola$Date[which.max(CocaCola$StockPrice)]#1/1/73
+#可口可樂公司股價最低的日子
+CocaCola$Date[which.min(CocaCola$StockPrice)]#3/1/80
+
 ```
 
 
