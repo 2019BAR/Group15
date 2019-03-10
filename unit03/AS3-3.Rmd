@@ -190,55 +190,52 @@ tapply(is.na(CPS$MetroAreaCode), CPS$State, mean) %>%sort()
 
 __§ 3.1__ How many observations (codes for metropolitan areas) are there in MetroAreaMap?
 ```{r}
-#
-D2=read.csv("data/CPSData.csv")
-nrow(D2)
-#
+#271
+Metro = read.csv("data/MetroAreaCodes.csv")
+nrow(Metro)
 ```
 
 How many observations (codes for countries) are there in CountryMap?
 ```{r}
-#
-D3=read.csv("data/CountryCodes.csv")
-nrow(D3)
-#
+#149
+Country=read.csv("data/CountryCodes.csv")
+nrow(Country)
 ```
 
 __§ 3.2__ What is the name of the variable that was added to the data frame by the merge() operation?
 ```{r}
-#
-
-#
+CPS_2= merge(CPS, Metro, by.x="MetroAreaCode", by.y="Code", all.x=TRUE)
+# MetroArea
 ```
 
 How many interviewees have a missing value for the new metropolitan area variable?
 ```{r}
-#
-#
+sum(is.na(CPS$MetroArea))
+#34238
 ```
 
 __§ 3.3__ Which of the following metropolitan areas has the largest number of interviewees?
 ```{r}
-#
-#
+table(CPS_2$MetroArea) %>% sort %>% tail(10)
 ```
 
 __§ 3.4__ Which metropolitan area has the highest proportion of interviewees of Hispanic ethnicity?
 ```{r}
-#
-#
+#Laredo, TX ,0.9663
+tapply(CPS_2$Hispanic, CPS_2$MetroArea, mean) %>% sort %>% tail
 ```
 
 __§ 3.5__ Determine the number of metropolitan areas in the United States from which at least 20% of interviewees are Asian.
 ```{r}
-#
-#
+#4
+tapply(CPS_2$Race == "Asian", CPS_2$MetroArea, mean) %>% sort %>% tail
 ```
 
 __§ 3.6__  Passing na.rm=TRUE to the tapply function, determine which metropolitan area has the smallest proportion of interviewees who have received no high school diploma.
 ```{r}
-#
-#
+#Iowa City, IA
+tapply(CPS_2$Education == "No high school diploma", CPS_2$MetroArea, mean, na.rm=T) %>% 
+  sort %>% head
 ```
 
 
