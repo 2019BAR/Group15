@@ -210,7 +210,7 @@ CPS_2= merge(CPS, Metro, by.x="MetroAreaCode", by.y="Code", all.x=TRUE)
 
 How many interviewees have a missing value for the new metropolitan area variable?
 ```{r}
-sum(is.na(CPS$MetroArea))
+sum(is.na(CPS_2$MetroArea))
 #34238
 ```
 
@@ -234,7 +234,7 @@ tapply(CPS_2$Race == "Asian", CPS_2$MetroArea, mean) %>% sort %>% tail
 __§ 3.6__  Passing na.rm=TRUE to the tapply function, determine which metropolitan area has the smallest proportion of interviewees who have received no high school diploma.
 ```{r}
 #Iowa City, IA
-tapply(CPS_2$Education == "No high school diploma", CPS_2$MetroArea, mean, na.rm=T) %>% 
+tapply(CPS_2$Education == "No high school diploma", CPS_2$MetroArea, mean, na.rm=TRUE) %>% 
   sort %>% head
 ```
 
@@ -247,44 +247,46 @@ tapply(CPS_2$Education == "No high school diploma", CPS_2$MetroArea, mean, na.rm
 
 __§ 4.1__ What is the name of the variable added to the CPS data frame by this merge operation?
 ```{r}
-#
-#
+# Country
+CPS_3= merge(CPS_2, Country, by.x="CountryOfBirthCode", by.y="Code", all.x=TRUE)
 ```
 
 How many interviewees have a missing value for the new metropolitan area variable?
 ```{r}
-#
-#
+#176
+sum(is.na(CPS_3$Country))
 ```
 
 __§ 4.2__ Among all interviewees born outside of North America, which country was the most common place of birth?
 ```{r}
-#
-#
+#Philippines,839x
+table(CPS_3$Country) %>% sort %>% tail 
 ```
 
 __§ 4.3__ What proportion of the interviewees from the "New York-Northern New Jersey-Long Island, NY-NJ-PA" metropolitan area have a country of birth that is not the United States? 
 ```{r}
-#
-#
+# 0.3087
+mean(CPS_3$Country[CPS_3$MetroArea=="New York-Northern New Jersey-Long Island, NY-NJ-PA"] 
+     != "United States", na.rm=TRUE)
 ```
 
 __§ 4.4__ Which metropolitan area has the largest number (note -- not proportion) of interviewees with a country of birth in India? 
 ```{r}
-#
-#
+# New York-Northern New Jersey-Long Island, NY-NJ-PA
+tapply(CPS_3$Country == "India", CPS_3$MetroArea, sum, na.rm=TRUE) %>% 
+  sort %>% tail
 ```
 
 In Brazil?
 ```{r}
-#
-#
+# Boston-Cambridge-Quincy, MA-NH 
+tapply(CPS_3$Country == "Brazil", CPS_3$MetroArea, sum, na.rm=TRUE) %>% sort %>% tail
 ```
 
 In Somalia?
 ```{r}
-#
-#
+# Minneapolis-St Paul-Bloomington, MN-WI
+tapply(CPS_3$Country == "Somalia", CPS_3$MetroArea, sum, na.rm=TRUE) %>% sort %>% tail 
 ```
 
 <br><br><br>
