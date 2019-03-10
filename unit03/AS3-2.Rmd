@@ -69,22 +69,22 @@ nrow(Boeing)
 
 __§ 1.2__ What is the earliest year in our datasets?
 ```{r}
-head(IBM$Date)
-head(GE$Date)
-head(ProcterGamble$Date)
-head(CocaCola$Date)
-head(Boeing$Date)
+head(IBM$Date,1) #head()可求出資料筆數最小之5筆，若要特定前n筆則為head(data,n)
+head(GE$Date,1)
+head(ProcterGamble$Date,1)
+head(CocaCola$Date,1)
+head(Boeing$Date,1)
 
 #1/1/70
 ```
 
 __§ 1.3__ What is the latest year in our datasets?
 ```{r}
-tail(IBM$Date)
-tail(GE$Date)
-tail(ProcterGamble$Date)
-tail(CocaCola$Date)
-tail(Boeing$Date)
+tail(IBM$Date,1) #tail()可求出資料筆數最小之5筆，若要特定前n筆則為tail(data,n)
+tail(GE$Date,1)
+tail(ProcterGamble$Date,1)
+tail(CocaCola$Date,1)
+tail(Boeing$Date,1)
 
 #12/1/09
 ```
@@ -125,10 +125,12 @@ sd(ProcterGamble$StockPrice)
 
 __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period?
 ```{r}
-CocaCola$Date[which.max(CocaCola$StockPrice)]
+CocaCola$Date[which.max(CocaCola$StockPrice)]  
 CocaCola$Date[which.min(CocaCola$StockPrice)]
-#1/1/73
+#1/1/73 
 #3/1/80
+
+#比較：which.min可求出最小值位置；min()求出最小值
 ```
 
 
