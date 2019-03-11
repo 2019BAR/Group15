@@ -232,22 +232,25 @@ sum(tail(sort(table(data$LocationDescription)))[-4])
 
 【4.3】 One of the locations has a much higher arrest rate than the other locations. Which is it? 
 ```{r}
-#STREET 錯誤
-which.max(table(data$LocationDescription))
-#
+#AIRPORT VENDING ESTABLISHMENT 
+tail(sort(tapply(data$Arrest, data$LocationDescription,mean)),1)
+#使用tapply()看不同區域中,平均被逮捕數量的比例;並使用sort排序,接著運用tail(1),直接抓出最大比例的資料,即為AIRPORT VENDING ESTABLISHMENT
 ```
 
 【4.4】 On which day of the week do the most motor vehicle thefts at gas stations happen?
 ```{r}
 #禮拜六
 which.max(table(format(ts[data$LocationDescription=="GAS STATION"], "%u")))
+#將失竊地點設為加油站，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最多值(which.max)為周六
 ```
 
 【4.5】 On which day of the week do the fewest motor vehicle thefts in residential driveways happen?
 ```{r}
 #禮拜六
 which.min(table(format(ts[data$LocationDescription=="DRIVEWAY - RESIDENTIAL"], "%u")))
+#將失竊地點設為住宅車道，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最少值(which.min)為周六
 ```
+
 
 
 <br><br><br>
