@@ -241,42 +241,64 @@ __§ 4.1__ For IBM, compare the monthly averages to the overall average stock pr
 ```{r}
 #mean=144.4
 #Answer：January,February,March,April,May
+
 tapply(IBM$StockPrice,months(IBM$Date),mean)
-summary(IBM$StockPrice)
+#使用tapply()看不同月份中,其平均的股價
+summary(IBM$StockPrice) #看ibm公司的股價統計值,找出高於平均的月份
+
 ```
 
 __§ 4.2__ General Electric and Coca-Cola both have their highest average stock price in the same month. Which month is this?
 ```{r}
-#GE
-tapply(GE$StockPrice,months(GE$Date),mean)
-#CocaCol
-tapply(CocaCola$StockPrice,months(CocaCola$Date),mean)
 #Answer：April
+
+#GE
+which.max(tapply(GE$StockPrice,months(GE$Date),mean))
+#使用tapply()看不同月份中,GE平均的股價,接著使用which.max()求出最大值在幾月
+
+#CocaCol
+which.max(tapply(CocaCola$StockPrice,months(CocaCola$Date),mean))
+#使用tapply()看不同月份中,CocaCola平均的股價,接著使用which.max()求出最大值在幾月
+
+#最後得兩間公司股價最大值都在四月
 ```
 
 __§ 4.3__ For the months of December and January, every company's average stock is higher in one month and lower in the other. In which month are the stock prices lower?
 ```{r}
-#GE
+# Answer：December is lower
 
-tapply(GE$StockPrice,months(GE$Date),mean)
+#GE
+GE1=tapply(GE$StockPrice,months(GE$Date),mean)[1]#一月在第一欄
+GE12=tapply(GE$StockPrice,months(GE$Date),mean)[7]#十二月在第七欄
+#使用tapply()看1月及12月份中,GE平均的股價,
+GE1>GE12 #檢驗其大小
 
 #CocaCola
-
-tapply(CocaCola$StockPrice,months(CocaCola$Date),mean)
+CocaCola1=tapply(CocaCola$StockPrice,months(CocaCola$Date),mean)[1]
+CocaCola12=tapply(CocaCola$StockPrice,months(CocaCola$Date),mean)[7]
+#使用tapply()看1月及12月份中,CocaCola平均的股價
+CocaCola1>CocaCola12#檢驗其大小
 
 #ProcterGamble
-
-tapply(ProcterGamble$StockPrice,months(ProcterGamble$Date),mean)
+ProcterGamble1=tapply(ProcterGamble$StockPrice,months(ProcterGamble$Date),mean)[1]
+ProcterGamble12=tapply(ProcterGamble$StockPrice,months(ProcterGamble$Date),mean)[7]
+#使用tapply()看1月及12月份中,ProcterGamble平均的股價
+ProcterGamble1>ProcterGamble12#檢驗其大小
 
 #Boeing
-
-tapply(Boeing$StockPrice,months(Boeing$Date),mean)
+Boeing1=tapply(Boeing$StockPrice,months(Boeing$Date),mean)[1]
+Boeing12=tapply(Boeing$StockPrice,months(Boeing$Date),mean)[7]
+#使用tapply()看1月及12月份中,Boeing平均的股價
+Boeing1>Boeing12#檢驗其大小
 
 #IBM
+IBM1=tapply(IBM$StockPrice,months(IBM$Date),mean)[1]
+IBM12=tapply(IBM$StockPrice,months(IBM$Date),mean)[7]
+#使用tapply()看1月及12月份中,IBM平均的股價
+IBM1>IBM12#檢驗其大小
 
-tapply(IBM$StockPrice,months(IBM$Date),mean)
+#可得每個公司的股價上,一月份大於十二月份為TRUE,因此12月的股價較低
 
-# Answer：January is lower
 ```
 
 <br><br><br>
