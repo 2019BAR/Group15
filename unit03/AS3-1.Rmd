@@ -120,7 +120,7 @@ head(data$Date)
 
 ```{r fig.height=2.5, fig.width=8}
 #Month/Day/Year Hour:Minute
-ts = as.POSIXct(data$Date, format="%m/%d/%Y%H:%M") 
+ts = as.POSIXct(data$Date, format="%m/%d/%Y %H:%M") 
 #本來是“字串”，將之轉換成時間資料格式，並命名為ts
 head(ts)
 ```
@@ -129,7 +129,9 @@ head(ts)
 【2.2】 What is the month and year of the median date in our dataset? 
 ```{r}
 #2006年05月21日 12:30:00 
-median(ts) #透過median()可了解中位數
+format(median(ts), "%B")
+format(median(ts), "%Y")
+#透過median()可了解中位數，再使用format將其轉為月份與年份
 ```
 
 
