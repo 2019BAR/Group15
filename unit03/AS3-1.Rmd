@@ -86,15 +86,15 @@ min(data$Beat) #min()可了解最小值
 
 【1.5】 How many observations have value TRUE in the Arrest variable (this is the number of crimes for which an arrest was made)?
 ```{r}
-sum(Arr_true = data$Arrest[data$Arrest == TRUE])
-#
+#15536
+sum(data$Arrest == TRUE) #用sum()取得案件有被抓(data$arrest為true)的觀察值數量
 ```
 
 【1.6】 How many observations have a LocationDescription value of ALLEY?
 ```{r}
 #2308
-Alley = data[data$LocationDescription =="ALLEY", ]
-nrow(Alley)
+sum(data$LocationDescription =="ALLEY")
+#用sum()取得案件發生地為胡同(data$LocationDescription為ALLEY)的觀察值數量
 ```
 
 
@@ -113,21 +113,23 @@ nrow(Alley)
 
 ```{r}
 head(data$Date)
-#看出這個格式為Month/Day/Year Hour:Minute
+#透過觀看前六項Date,看出這個格式為Month/Day/Year Hour:Minute
 ```
 
 
 
 ```{r fig.height=2.5, fig.width=8}
 #Month/Day/Year Hour:Minute
-ts = as.POSIXct(data$Date, format="%m/%d/%Y%H:%M")
+ts = as.POSIXct(data$Date, format="%m/%d/%Y%H:%M") 
+#本來是“字串”，將之轉換成時間資料格式，並命名為ts
 head(ts)
 ```
 
 
 【2.2】 What is the month and year of the median date in our dataset? 
 ```{r}
-median(ts)
+#2006年05月21日 12:30:00 
+median(ts) #透過median()可了解中位數
 ```
 
 
@@ -136,13 +138,17 @@ median(ts)
 #2月
 head(sort(table(format(ts,"%m"))),1)
 #ts %>% format('%m') %>% table %>% sort %>% head(1)
+#用format萃取月份參數，table總覽，並且使用sort排列，運用head(1)找出最少者
+#可得為在2月，共發生13511起。
 ```
 
 【2.4】 On which weekday did the most motor vehicle thefts occur?
 ```{r}
-#5月
+#週五
 tail(sort(table(format(ts, "%u"))),1)
 #ts %>% format('%u') %>% table %>% sort %>% tail(1)
+#用format萃取星期參數，table總覽，並且使用sort排列，運用tail(1)找出最多者
+#可得為在周五，共發生29284起
 ```
 
 【2.5】 Which month has the largest number of motor vehicle thefts for which an arrest was made?
@@ -150,6 +156,8 @@ tail(sort(table(format(ts, "%u"))),1)
 #1月
 tail(sort(table(format(ts[data$Arrest], "%m"))),1)
 #ts[data$Arrest] %>% format('%m') %>% table %>% sort %>% tail(1)
+#先找出有被逮捕的案件所屬時間，用format萃取月份參數，table總覽，並且使用sort排列，運用tail(1)找出最多者
+#可得為一月,共1435起有被抓
 ```
 
 <br><br>
@@ -164,19 +172,22 @@ tail(sort(table(format(ts[data$Arrest], "%m"))),1)
 # (b)2005~2008 : decrease
 # (c)2009~2011 : increase
 hist(ts,"year",las=2,freq=T,xlab="")
+#使用hist()直方圖來觀看年份之間的趨勢
 ```
 
 【3.2】 Does it look like there were more crimes for which arrests were made in the first half of the time period or the second half of the time period?
 ```{r}
-#yes
-median(ts)
-table(ts > as.POSIXct("2007-01-01"))
+#上半年
+median(ts[data$Arrest])
+table(ts[data$Arrest] > as.POSIXct("2007-01-01"))
+#被逮捕的案件發生時間中位數為2005.1.3,可得在上半年被逮捕的案件較多
 ```
 
 【3.3】 For what proportion of motor vehicle thefts in 2001 was an arrest made?
 ```{r}
 #0.10412
 head(tapply(data$Arrest, format(ts,'%Y'), mean),1)
+#使用tapply()看不同年份中,平均被逮捕數量的比例;並使用head(1),直接抓出2001年的資料
 ```
 
 【3.4】 For what proportion of motor vehicle thefts in 2007 was an arrest made?
@@ -184,6 +195,8 @@ head(tapply(data$Arrest, format(ts,'%Y'), mean),1)
 #0.08487
 prop_arrest=tapply(data$Arrest, format(ts,'%Y'), mean) 
 prop_arrest[7]
+#使用tapply()看不同年份中,平均被逮捕數量的比例,並將之設為prop_arrest
+#再從prop_arrest中取出第七個(2007年)的資料
 ```
 
 【3.5】 For what proportion of motor vehicle thefts in 2012 was an arrest made?
@@ -191,6 +204,8 @@ prop_arrest[7]
 #0.03903
 prop_arrest=tapply(data$Arrest, format(ts,'%Y'), mean) 
 prop_arrest[12]
+#使用tapply()看不同年份中,平均被逮捕數量的比例,並將之設為prop_arrest
+#再從prop_arrest中取出第12個(2012年)的資料
 ```
 
 <br><br>
@@ -202,20 +217,24 @@ prop_arrest[12]
 【4.1】 Which locations are the top five locations for motor vehicle thefts, excluding the "Other" category? You should select 5 of the following options.
 
 ```{r}
-#DRIVEWAY - RESIDENTIAL GAS STATION  ALLEY PARKING LOT GARAGE(NON.RESID.)   STREET 
+#DRIVEWAY-RESIDENTIAL/GAS STATION/ ALLEY/ PARKING LOT GARAGE(NON.RESID.)/STREET 
 tail(sort(table(data$LocationDescription)))[-4]
+#用table總攬每個地點的發生次數,再用sort排序,最後使用tail找出top6,並將區域"other"忽略
+#因此我們找出top5。
 ```
 
 【4.2】 How many observations are in Top5?
 ```{r}
 #177510
 sum(tail(sort(table(data$LocationDescription)))[-4])
+#我們運用4.1找出的top5,使用sum函數加總其觀察值數量
 ```
 
 【4.3】 One of the locations has a much higher arrest rate than the other locations. Which is it? 
 ```{r}
-#STREET 
+#STREET 錯誤
 which.max(table(data$LocationDescription))
+#
 ```
 
 【4.4】 On which day of the week do the most motor vehicle thefts at gas stations happen?
