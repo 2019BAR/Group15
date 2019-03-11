@@ -51,14 +51,14 @@ __§ 1.1__ How many interviewees are in the dataset?
 ```{r}
 
 CPS = read.csv("data/CPSData.csv")
-nrow(CPS)
+nrow(CPS)#從列位數量可了解有多少個變數
 #131302
 ```
 
 __§ 1.2__ Among the interviewees with a value reported for the Industry variable, what is the most common industry of employment? Please enter the name exactly how you see it.
 ```{r}
 
-summary(CPS$Industry)%>% sort
+summary(CPS$Industry)%>% sort#摘要Industry變數後再排序大小
 #Educational and health services
 
 ```
@@ -67,18 +67,18 @@ __§ 1.3__ Which state has the fewest interviewees?
 ```{r}
 
 
-summary(CPS$State)%>% sort
+summary(CPS$State)%>% sort%>%head(1)
 #New Mexico
-
+#摘要State變數後排序大小，再利用head尋找最小值
 ```
 
 Which state has the largest number of interviewees?
 ```{r}
 
 
-summary(CPS$State)%>% sort
+summary(CPS$State)%>% sort%>%tail(1)
 #California
-
+#摘要State變數後排序大小，再利用tail尋找最大值
 ```
 
 __§ 1.4__ What proportion of interviewees are citizens of the United States?
@@ -86,6 +86,7 @@ __§ 1.4__ What proportion of interviewees are citizens of the United States?
 
 1-(sum(as.numeric(CPS$Citizenship=="Non-Citizen" , na.rm=TRUE))/ nrow(CPS))
 #0.9421943
+#令Citizenship=="Non-Citizen"為真者=1將其加總除上總資料筆數後，可得出Non-Citizen比例，將其減1則可得出Citizen的比例
 ```
 
 __§ 1.5__ For which races are there at least 250 interviewees in the CPS dataset of Hispanic ethnicity? (Select all that apply.) 
@@ -102,7 +103,7 @@ __§ 1.5__ For which races are there at least 250 interviewees in the CPS datase
 cps2=subset(CPS,CPS$Hispanic==1)
 summary(cps2$Race)
 #American Indian,cBlack, Multiracial,White
-
+#篩選出Hispanic為1的資料後，針對其Race變數進行摘要
 ```
 
 <br><br> 
@@ -170,18 +171,24 @@ __§ 2.4__ Which region of the United States has the largest proportion of inter
 ```{r}
 # Midwest,34.79%
 table(CPS$Region, is.na(CPS$MetroAreaCode)) %>% prop.table(1)
+#prop.table(x, margin=NULL)用來計算表格內百分比，當x=1時只計算列，x=2時只計算欄，預設的margin=NULL列與欄都會計算
+#此處計算出Region與MetroAreaCode的表格後計算表格列的百分比得出Midwest比例為34.79%
+
 ```
 
 __§ 2.5__ Which state has a proportion of interviewees living in a non-metropolitan area closest to 30%?
 ```{r}
 # Wisconsin
 table(CPS$State, is.na(CPS$MetroAreaCode)) %>% prop.table(1)
+#prop.table(x, margin=NULL)用來計算表格內百分比，當x=1時只計算列，x=2時只計算欄，預設的margin=NULL列與欄都會計算
+#此處計算出State與MetroAreaCode的表格後計算表格列的百分比得出Wisconsin比例為29.333%，最為接近30%
 ```
 
 Which state has the largest proportion of non-metropolitan interviewees, ignoring states where all interviewees were non-metropolitan?
 ```{r}
 # Montana, 83.6%
 tapply(is.na(CPS$MetroAreaCode), CPS$State,mean)%>%sort()%>%tail()
+#根據MetroAreaCode的錯誤值計算State的平均後，按照大小排列後取最大值
 ```
 
 <br><br> 
@@ -195,6 +202,7 @@ __§ 3.1__ How many observations (codes for metropolitan areas) are there in Met
 #271
 Metro = read.csv("data/MetroAreaCodes.csv")
 nrow(Metro)
+#讀取csv.資料：read.csv("data/檔名.CSV")
 ```
 
 How many observations (codes for countries) are there in CountryMap?
@@ -229,12 +237,14 @@ __§ 3.4__ Which metropolitan area has the highest proportion of interviewees of
 ```{r}
 #Laredo, TX ,0.9663
 tapply(CPS_2$Hispanic, CPS_2$MetroArea, mean) %>% sort %>% tail
+#根據metroarea計算Hispanic的平均後，按照大小排列後找出最大者
 ```
 
 __§ 3.5__ Determine the number of metropolitan areas in the United States from which at least 20% of interviewees are Asian.
 ```{r}
 #4
 tapply(CPS_2$Race == "Asian", CPS_2$MetroArea, mean) %>% sort %>% tail
+#根據metroarea計算Race的平均後，按照大小排列後找出最大者
 ```
 
 __§ 3.6__  Passing na.rm=TRUE to the tapply function, determine which metropolitan area has the smallest proportion of interviewees who have received no high school diploma.
@@ -256,6 +266,7 @@ __§ 4.1__ What is the name of the variable added to the CPS data frame by this 
 ```{r}
 # Country
 CPS_3= merge(CPS_2, Country, by.x="CountryOfBirthCode", by.y="Code", all.x=TRUE)
+#當合併變數不同時merge()用法：merge(欲合併的data1,欲合併的data2, data1中變數名, data2中變數名,all.X=TRUE指若data2沒有與data1相同的值，則data2合併之變數為N/A)
 ```
 
 How many interviewees have a missing value for the new metropolitan area variable?
@@ -269,6 +280,7 @@ __§ 4.2__ Among all interviewees born outside of North America, which country w
 ```{r}
 #Philippines,839x
 table(CPS_3$Country) %>% sort %>% tail 
+#將Country變數分類加總後排序，利用tail找出最大者
 ```
 
 __§ 4.3__ What proportion of the interviewees from the "New York-Northern New Jersey-Long Island, NY-NJ-PA" metropolitan area have a country of birth that is not the United States? 
@@ -284,7 +296,7 @@ __§ 4.4__ Which metropolitan area has the largest number (note -- not proportio
 # New York-Northern New Jersey-Long Island, NY-NJ-PA
 tapply(CPS_3$Country == "India", CPS_3$MetroArea, sum, na.rm=TRUE) %>% 
   sort %>% tail(1)
-
+#根據metroarea計算Country == "India"的加總後，按照大小排列後取最大值
 
 ```
 
@@ -292,12 +304,14 @@ In Brazil?
 ```{r}
 # Boston-Cambridge-Quincy, MA-NH 
 tapply(CPS_3$Country == "Brazil", CPS_3$MetroArea, sum, na.rm=TRUE) %>% sort %>% tail(1)
+#根據metroarea計算Country == "Brazil"的加總後，按照大小排列後取最大值
 ```
 
 In Somalia?
 ```{r}
 # Minneapolis-St Paul-Bloomington, MN-WI
-tapply(CPS_3$Country == "Somalia", CPS_3$MetroArea, sum, na.rm=TRUE) %>% sort %>% tail (1)
+tapply(CPS_3$Country == "Somalia", CPS_3$MetroArea, sum, na.rm=TRUE) %>% sort%>% tail (1)
+#根據metroarea計算Country == "Somalia"的加總後，按照大小排列後取最大值
 ```
 
 <br><br><br>
