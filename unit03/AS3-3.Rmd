@@ -74,8 +74,6 @@ summary(CPS$State)%>% sort%>%head(1)
 
 Which state has the largest number of interviewees?
 ```{r}
-
-
 summary(CPS$State)%>% sort%>%tail(1)
 #California
 #摘要State變數後排序大小，再利用tail尋找最大值
@@ -86,7 +84,8 @@ __§ 1.4__ What proportion of interviewees are citizens of the United States?
 
 1-(sum(as.numeric(CPS$Citizenship=="Non-Citizen" , na.rm=TRUE))/ nrow(CPS))
 #0.9421943
-#令Citizenship=="Non-Citizen"為真者=1將其加總除上總資料筆數後，可得出Non-Citizen比例，將其減1則可得出Citizen的比例
+#令Citizenship=="Non-Citizen"為真者=1將其加總除上總資料筆數後，可得出Non-Citizen比例，將其使用1去減，則可得出Citizen的比例
+
 ```
 
 __§ 1.5__ For which races are there at least 250 interviewees in the CPS dataset of Hispanic ethnicity? (Select all that apply.) 
@@ -133,6 +132,7 @@ __§ 2.1__ Which variables have at least one interviewee with a missing (NA) val
 colSums(is.na(CPS)) 
 
 #MetroAreaCode,Married,Education,EmploymentStatus,Industry
+#使用colSums()加總欄資料
 ```
 
 __§ 2.2__  Which is the most accurate:
@@ -157,14 +157,14 @@ __§ 2.3__ How many states had all interviewees living in a non-metropolitan are
 ```{r}
 #Alaska,Wyoming,so answer is 2.  
 table(CPS$State,is.na(CPS$MetroAreaCode))
-#若MetroAreaCode在某國中全為N/A值，及False=0，則所有受訪者接居住在non-metropolitan area
+#若MetroAreaCode在某國中全為N/A值，即False=0，則所有受訪者接居住在non-metropolitan area
 ```
 
 How many states had all interviewees living in a metropolitan area? Again, treat the District of Columbia as a state.
 ```{r}
 #District of Columbia,New Jersey,Rhode Island,so answer is 3.   
 table(CPS$State,is.na(CPS$MetroAreaCode))
-#若MetroAreaCode在某國中全無N/A值，及True=0，則所有受訪者接居住在metropolitan area
+#若MetroAreaCode在某國中全無N/A值，即True=0，則所有受訪者接居住在metropolitan area
 ```
 
 __§ 2.4__ Which region of the United States has the largest proportion of interviewees living in a non-metropolitan area?
