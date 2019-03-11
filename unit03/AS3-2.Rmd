@@ -42,6 +42,7 @@ fggggg
 + `Date`：日期
 + `StockPrice`：給定月份公司的平均股價
 ```{r}
+#讀入資料(csv檔)，並予以命名
 IBM = read.csv("data/IBMStock.csv")
 GE = read.csv("data/GEStock.csv")
 ProcterGamble = read.csv("data/ProcterGambleStock.csv")
@@ -57,64 +58,69 @@ Boeing = read.csv("data/BoeingStock.csv")
 
 __§ 1.1__ Our five datasets all have the same number of observations. How many observations are there in each data set?
 ```{r}
+#從nrow()函數中看他的列數，即可得知總觀察值數量
 nrow(IBM)
 nrow(GE)
 nrow(ProcterGamble)
 nrow(CocaCola)
 nrow(Boeing)
-
-#480
+#皆為480
 ```
 
 
 __§ 1.2__ What is the earliest year in our datasets?
 ```{r}
-head(IBM$Date,1) #head()可求出資料筆數最小之5筆，若要特定前n筆則為head(data,n)
+#head()可求出資料筆數最小之5筆，若要特定前n筆則為head(data,n)
+head(IBM$Date,1) 
 head(GE$Date,1)
 head(ProcterGamble$Date,1)
 head(CocaCola$Date,1)
 head(Boeing$Date,1)
-
 #1/1/70
 ```
 
 __§ 1.3__ What is the latest year in our datasets?
 ```{r}
-tail(IBM$Date,1) #tail()可求出資料筆數最小之5筆，若要特定前n筆則為tail(data,n)
+#tail()可求出資料筆數最小之5筆，若要特定前n筆則為tail(data,n)
+tail(IBM$Date,1) 
 tail(GE$Date,1)
 tail(ProcterGamble$Date,1)
 tail(CocaCola$Date,1)
 tail(Boeing$Date,1)
-
-#12/1/09
+ #12/1/09
 ```
 
 __§ 1.4__ What is the mean stock price of IBM over this time period?
 ```{r}
+#使用mean()求出其平均值
 mean(IBM$StockPrice)
 #144.4
 ```
 
 __§ 1.5__ What is the minimum stock price of General Electric (GE) over this time period?
 ```{r}
+#使用min()求出其最小值
 min(GE$StockPrice)
 #9.294
 ```
 
 __§ 1.6__ What is the maximum stock price of Coca-Cola over this time period?
 ```{r}
+#使用max()求出其最大值
 max(CocaCola$StockPrice)
 #146.6
 ```
 
 __§ 1.7__ What is the median stock price of Boeing over this time period?
 ```{r}
+#使用median()求出其中位數
 median(Boeing$StockPrice)
 #44.88
 ```
 
 __§ 1.8__ What is the standard deviation of the stock price of Procter & Gamble over this time period?
 ```{r}
+#使用sd()求出其標準差
 sd(ProcterGamble$StockPrice)
 #18.19
 ```
@@ -137,7 +143,7 @@ CocaCola$Date[which.min(CocaCola$StockPrice)]
 __§ 2.2__ In March of 2000, the technology bubble burst, and a stock market crash occurred. According to this plot, which company's stock dropped more?
 ```{r}
 #Answer：GE(col="Green")
-
+#用as.Date函數轉換變數為日期類型
 IBM$Date = as.Date(IBM$Date, "%m/%d/%y")
 
 GE$Date = as.Date(GE$Date, "%m/%d/%y")
@@ -148,27 +154,34 @@ ProcterGamble$Date = as.Date(ProcterGamble$Date, "%m/%d/%y")
 
 Boeing$Date = as.Date(Boeing$Date, "%m/%d/%y")
 
+#使用 plot 函數來繪製，加上一個 type參數為1，使之繪製成折線圖.
+#命名x與y軸，並設定y軸為0至200之區間.
 plot(CocaCola$Date[300:450], CocaCola$StockPrice[300:450], type="l",    
-col="red",ylim=c(0,200),xlab = "Date",ylab="Stockprice")
-lines(IBM$Date[300:450], IBM$StockPrice[300:450],col="brown")
-lines(GE$Date[300:450], GE$StockPrice[300:450],col="Green")
-lines(ProcterGamble$Date[300:450], ProcterGamble$StockPrice[300:450],col="pink")
-lines(Boeing$Date[300:450], Boeing$StockPrice[300:450],col="Purple")
+col="red",ylim=c(0,200),xlab = "Date",ylab="Stockprice") #紅線為CocaCola公司
+lines(IBM$Date[300:450], IBM$StockPrice[300:450],col="brown") #咖啡線為IBM公司
+lines(GE$Date[300:450], GE$StockPrice[300:450],col="Green")#綠線為GE公司
+lines(ProcterGamble$Date[300:450], ProcterGamble$StockPrice[300:450],col="pink")#粉線為ProcterGamble公司
+lines(Boeing$Date[300:450], Boeing$StockPrice[300:450],col="Purple") #紫線為Boeing公司
+#從折線圖中,我們可以發現在2000年中,GE公司股價下跌最嚴重
 ```
 
 __§ 2.3__ (a) Around 1983, the stock for one of these companies (Coca-Cola or Procter and Gamble) was going up, while the other was going down. Which one was going up? 
 ```{r}
 # ProcterGamble was going down
 # Coca-Cola was going up
-plot(CocaCola$Date[150:200], CocaCola$StockPrice[150:200], type="l",    
-col="red",ylim=c(0,200),xlab = "Date",ylab="Stockprice")
-lines(ProcterGamble$Date[150:200], ProcterGamble$StockPrice[150:200],col="pink")
 
+#使用 plot 函數來繪製，加上一個 type參數為1，使之繪製成折線圖.
+#命名x與y軸，並設定y軸為0至200之區間
+plot(CocaCola$Date[150:200], CocaCola$StockPrice[150:200], type="l",    
+col="red",ylim=c(0,200),xlab = "Date",ylab="Stockprice") #紅色為Coca-Cola 
+lines(ProcterGamble$Date[150:200], ProcterGamble$StockPrice[150:200],col="pink") #粉色為ProcterGamble
+#從折線圖中,我們可以發現1983年中,ProcterGamble在下跌,Coca-Cola 在上升
 ```
 
 (b) In the time period shown in the plot, which stock generally has lower values?
 ```{r}
 #Answer：CocaCola 
+#從上圖可得在1983年間,可口可樂股值是比較低的
 ```
 
 
@@ -180,35 +193,42 @@ __§ 3.1__ Which stock fell the most right after the technology bubble burst in 
 ```{r}
 #Answer：GE
 
+#使用plot()函數來繪製，加上一個 type參數為1，使之繪製成折線圖.
+#命名x與y軸，並設定y軸為0至200之區間
 plot(CocaCola$Date[300:450], CocaCola$StockPrice[300:450], type="l",    
-col="red",ylim=c(0,200),xlab = "Date",ylab="Stockprice")
-lines(IBM$Date[300:450], IBM$StockPrice[300:450],col="brown")
-lines(GE$Date[300:450], GE$StockPrice[300:450],col="Green")
-lines(ProcterGamble$Date[300:450], ProcterGamble$StockPrice[300:450],col="pink")
-lines(Boeing$Date[300:450], Boeing$StockPrice[300:450],col="Purple")
+col="red",ylim=c(0,200),xlab = "Date",ylab="Stockprice") #紅線為CocaCola公司
+lines(IBM$Date[300:450], IBM$StockPrice[300:450],col="brown") #咖啡線為IBM公司
+lines(GE$Date[300:450], GE$StockPrice[300:450],col="Green") #綠線為GE公司
+lines(ProcterGamble$Date[300:450], ProcterGamble$StockPrice[300:450],col="pink") #粉線為ProcterGamble公司
+lines(Boeing$Date[300:450], Boeing$StockPrice[300:450],col="Purple") #紫線為Boeing公司
 
+#用abline() 函數繪製輔助線,下例為v=as.Date(c("要加入輔助線之時間"))，設定線寬為1
 abline(v=as.Date(c("2000-01-01")), lwd=1)
 abline(v=as.Date(c("1997-09-01")), lwd=1)
 abline(v=as.Date(c("1997-11-01")), lwd=1)
 abline(v=as.Date(c("2004-01-01")), lwd=1)
 abline(v=as.Date(c("2006-01-01")), lwd=1)
+#此題可得在2000年間,GE公司股值下跌最多
 ```
 
 __§ 3.2__ Which stock reaches the highest value in the time period 1995-2005?
 ```{r}
 #Answer：IBM 
+#由3.1圖可得在1995-2005年間,IBM公司股值達到最高值
 ```
 
 __§ 3.3__ In October of 1997, there was a global stock market crash that was caused by an economic crisis in Asia. Comparing September 1997 to November 1997, which companies saw a decreasing trend in their stock price? (Select all that apply.)
 ```{r}
 #Answer：Procter and Gamble
-
 #Answer：Boeing
+
+#由3.1圖可得在1997九月到十一月間,Procter and Gamble跟Boeing公司都有股價下降的趨勢
 ```
 
 __§ 3.4__ In the last two years of this time period (2004 and 2005) which stock seems to be performing the best, in terms of increasing stock price?
 ```{r}
-#Answer：IBM
+#Answer：Boeing
+#由3.1圖可得在2004與2005之間,就股價上漲趨勢而言,Boeing公司表現最佳
 ```
 
 
