@@ -235,7 +235,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">AS3-1: 數位偵探</h1>
 <h4 class="author"><em>第 15 組</em></h4>
-<h4 class="date"><em>2019-03-12 11:51:32</em></h4>
+<h4 class="date"><em>2019-03-12 11:54:45</em></h4>
 
 </div>
 
@@ -281,31 +281,21 @@ data =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st"
  $ Year               : int  2012 2012 2012 2012 2012 2012 2012 2012 2012 2012 ...
  $ Latitude           : num  41.8 41.9 42 41.8 41.8 ...
  $ Longitude          : num  -87.6 -87.7 -87.8 -87.7 -87.6 ...</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(data)</code></pre></div>
-<pre><code>       ID                      Date                            LocationDescription
- Min.   :1310022   5/16/08 0:00  :    11   STREET                        :156564  
- 1st Qu.:2832144   10/17/01 22:00:    10   PARKING LOT/GARAGE(NON.RESID.): 14852  
- Median :4762956   4/13/04 21:00 :    10   OTHER                         :  4573  
- Mean   :4968629   9/17/05 22:00 :    10   ALLEY                         :  2308  
- 3rd Qu.:7201878   10/12/01 22:00:     9   GAS STATION                   :  2111  
- Max.   :9181151   10/13/01 22:00:     9   DRIVEWAY - RESIDENTIAL        :  1675  
-                   (Other)       :191582   (Other)                       :  9558  
-   Arrest         Domestic            Beat         District     CommunityArea  
- Mode :logical   Mode :logical   Min.   : 111   Min.   : 1      Min.   : 0     
- FALSE:176105    FALSE:191226    1st Qu.: 722   1st Qu.: 6      1st Qu.:22     
- TRUE :15536     TRUE :415       Median :1121   Median :10      Median :32     
-                                 Mean   :1259   Mean   :12      Mean   :38     
-                                 3rd Qu.:1733   3rd Qu.:17      3rd Qu.:60     
-                                 Max.   :2535   Max.   :31      Max.   :77     
-                                                NA's   :43056   NA's   :24616  
-      Year         Latitude      Longitude    
- Min.   :2001   Min.   :41.6   Min.   :-87.9  
- 1st Qu.:2003   1st Qu.:41.8   1st Qu.:-87.7  
- Median :2006   Median :41.9   Median :-87.7  
- Mean   :2006   Mean   :41.8   Mean   :-87.7  
- 3rd Qu.:2009   3rd Qu.:41.9   3rd Qu.:-87.6  
- Max.   :2012   Max.   :42.0   Max.   :-87.5  
-                NA's   :2276   NA's   :2276   </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(data)</code></pre></div>
+<pre><code>       ID           Date           LocationDescription Arrest Domestic Beat District
+1 8951354 12/31/12 23:15                        STREET  FALSE    FALSE  623        6
+2 8951141 12/31/12 22:00                        STREET  FALSE    FALSE 1213       12
+3 8952745 12/31/12 22:00 RESIDENTIAL YARD (FRONT/BACK)  FALSE    FALSE 1622       16
+4 8952223 12/31/12 22:00                        STREET  FALSE    FALSE  724        7
+5 8951608 12/31/12 21:30                        STREET  FALSE    FALSE  211        2
+6 8950793 12/31/12 20:30                        STREET   TRUE    FALSE 2521       25
+  CommunityArea Year Latitude Longitude
+1            69 2012    41.76    -87.62
+2            24 2012    41.90    -87.66
+3            11 2012    41.97    -87.77
+4            67 2012    41.77    -87.66
+5            35 2012    41.84    -87.62
+6            19 2012    41.93    -87.75</code></pre>
 <p>類別(Factor) versus 字串(Character)</p>
 <p>【1.2】How many variables are in this dataset?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#11</span>
