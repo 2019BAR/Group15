@@ -235,7 +235,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">AS3-1: 數位偵探</h1>
 <h4 class="author"><em>第 15 組</em></h4>
-<h4 class="date"><em>2019-03-12 11:54:45</em></h4>
+<h4 class="date"><em>2019-03-12 17:50:33</em></h4>
 
 </div>
 
@@ -450,15 +450,15 @@ Top5 =<span class="st"> </span><span class="kw">subset</span>(data, LocationDesc
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#使用tapply()看不同區域中,平均被逮捕數量的比例;並使用sort排序,接著運用tail(1),直接抓出最大比例的資料,即為AIRPORT VENDING ESTABLISHMENT</span></code></pre></div>
 <p>【4.4】 On which day of the week do the most motor vehicle thefts at gas stations happen?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#禮拜六</span>
-<span class="kw">which.max</span>(<span class="kw">table</span>(<span class="kw">format</span>(ts[data<span class="op">$</span>LocationDescription<span class="op">==</span><span class="st">&quot;GAS STATION&quot;</span>], <span class="st">&quot;%w&quot;</span>)))</code></pre></div>
+<span class="kw">which.max</span>(<span class="kw">table</span>(<span class="kw">format</span>(ts[data<span class="op">$</span>LocationDescription<span class="op">==</span><span class="st">&quot;GAS STATION&quot;</span>], <span class="st">&quot;%u&quot;</span>)))</code></pre></div>
 <pre><code>6 
-7 </code></pre>
+6 </code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#將失竊地點設為加油站，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最多值(which.max)為周六</span></code></pre></div>
 <p>【4.5】 On which day of the week do the fewest motor vehicle thefts in residential driveways happen?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#禮拜六</span>
-<span class="kw">which.min</span>(<span class="kw">table</span>(<span class="kw">format</span>(ts[data<span class="op">$</span>LocationDescription<span class="op">==</span><span class="st">&quot;DRIVEWAY - RESIDENTIAL&quot;</span>], <span class="st">&quot;%w&quot;</span>)))</code></pre></div>
+<span class="kw">which.min</span>(<span class="kw">table</span>(<span class="kw">format</span>(ts[data<span class="op">$</span>LocationDescription<span class="op">==</span><span class="st">&quot;DRIVEWAY - RESIDENTIAL&quot;</span>], <span class="st">&quot;%u&quot;</span>)))</code></pre></div>
 <pre><code>6 
-7 </code></pre>
+6 </code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#將失竊地點設為住宅車道，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最少值(which.min)為周六</span></code></pre></div>
 <p><br><br><br></p>
 </div>

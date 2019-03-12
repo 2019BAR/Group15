@@ -244,14 +244,14 @@ tail(sort(tapply(Top5$Arrest, Top5$LocationDescription,mean)),1)
 【4.4】 On which day of the week do the most motor vehicle thefts at gas stations happen?
 ```{r}
 #禮拜六
-which.max(table(format(ts[data$LocationDescription=="GAS STATION"], "%w")))
+which.max(table(format(ts[data$LocationDescription=="GAS STATION"], "%u")))
 #將失竊地點設為加油站，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最多值(which.max)為周六
 ```
 
 【4.5】 On which day of the week do the fewest motor vehicle thefts in residential driveways happen?
 ```{r}
 #禮拜六
-which.min(table(format(ts[data$LocationDescription=="DRIVEWAY - RESIDENTIAL"], "%w")))
+which.min(table(format(ts[data$LocationDescription=="DRIVEWAY - RESIDENTIAL"], "%u")))
 #將失竊地點設為住宅車道，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最少值(which.min)為周六
 ```
 
