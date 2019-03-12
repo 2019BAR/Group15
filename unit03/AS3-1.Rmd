@@ -219,7 +219,7 @@ prop_arrest[12]
 
 ```{r}
 #DRIVEWAY-RESIDENTIAL/GAS STATION/ ALLEY/ PARKING LOT GARAGE(NON.RESID.)/STREET 
-top5 = tail(sort(table(data$LocationDescription)))[-4]
+table(data$LocationDescription) %>% sort %>% tail(6) %>% .[-4]
 #用table總攬每個地點的發生次數,再用sort排序,最後使用tail找出top6,並將區域"other"忽略
 #因此我們找出top5。
 ```
@@ -227,14 +227,17 @@ top5 = tail(sort(table(data$LocationDescription)))[-4]
 【4.2】 How many observations are in Top5?
 ```{r}
 #177510
-sum(tail(sort(table(data$LocationDescription)))[-4])
+(D = names(table(data$LocationDescription) %>% sort %>% tail(6))[-4])
+sum(data$LocationDescription %in% D)  # 177510
+
 #我們運用4.1找出的top5,使用sum函數加總其觀察值數量
 ```
 
 【4.3】 One of the locations has a much higher arrest rate than the other locations. Which is it? 
 ```{r}
-#AIRPORT VENDING ESTABLISHMENT 
-tail(sort(tapply(data$Arrest, top5$LocationDescription,mean)),1)
+#GAS STATION
+Top5 = subset(data, LocationDescription %in% D)
+tail(sort(tapply(Top5$Arrest, Top5$LocationDescription,mean)),1)
 #使用tapply()看不同區域中,平均被逮捕數量的比例;並使用sort排序,接著運用tail(1),直接抓出最大比例的資料,即為AIRPORT VENDING ESTABLISHMENT
 ```
 
