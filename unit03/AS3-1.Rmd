@@ -57,8 +57,6 @@ nrow(data)#從列數數量了解觀察值數量
 ```{r}
 #使用str()可了解個欄位的格式(如factor,logistic,integer,number)
 str(data)
-summary(data)
-data.frame(data)
 ```
 
 類別(Factor) versus 字串(Character)
