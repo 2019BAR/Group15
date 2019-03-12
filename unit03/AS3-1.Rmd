@@ -58,7 +58,6 @@ nrow(data)#從列數數量了解觀察值數量
 #使用str()可了解個欄位的格式(如factor,logistic,integer,number)
 str(data)
 summary(data)
-data.frame(data)
 ```
 
 類別(Factor) versus 字串(Character)
@@ -120,7 +119,7 @@ head(data$Date)
 
 ```{r fig.height=2.5, fig.width=8}
 #Month/Day/Year Hour:Minute
-ts = as.POSIXct(data$Date, format="%m/%d/%Y %H:%M") 
+ts = as.POSIXct(data$Date, format="%m/%d/%y %H:%M") 
 #本來是“字串”，將之轉換成時間資料格式，並命名為ts
 head(ts)
 ```
@@ -130,7 +129,7 @@ head(ts)
 ```{r}
 #2006年05月
 format(median(ts), "%B")
-format(median(ts), "%Y")
+format(median(ts), "%y")
 #透過median()可了解中位數，再使用format將其轉為月份與年份
 ```
 
@@ -147,8 +146,8 @@ head(sort(table(format(ts,"%m"))),1)
 【2.4】 On which weekday did the most motor vehicle thefts occur?
 ```{r}
 #週五
-tail(sort(table(format(ts, "%u"))),1)
-#ts %>% format('%u') %>% table %>% sort %>% tail(1)
+tail(sort(table(format(ts, "%w"))),1)
+#ts %>% format('%w') %>% table %>% sort %>% tail(1)
 #用format萃取星期參數，table總覽，並且使用sort排列，運用tail(1)找出最多者
 #可得為在周五，共發生29284起
 ```
@@ -181,7 +180,7 @@ hist(ts,"year",las=2,freq=T,xlab="")
 ```{r}
 #上半年
 median(ts[data$Arrest])
-table(ts[data$Arrest] > as.POSIXct("2007-01-01"))
+table(ts > as.POSIXct("2007-01-01"))
 #被逮捕的案件發生時間中位數為2005.1.3,可得在上半年被逮捕的案件較多
 ```
 
@@ -220,7 +219,7 @@ prop_arrest[12]
 
 ```{r}
 #DRIVEWAY-RESIDENTIAL/GAS STATION/ ALLEY/ PARKING LOT GARAGE(NON.RESID.)/STREET 
-tail(sort(table(data$LocationDescription)))[-4]
+top5 = tail(sort(table(data$LocationDescription)))[-4]
 #用table總攬每個地點的發生次數,再用sort排序,最後使用tail找出top6,並將區域"other"忽略
 #因此我們找出top5。
 ```
@@ -235,21 +234,21 @@ sum(tail(sort(table(data$LocationDescription)))[-4])
 【4.3】 One of the locations has a much higher arrest rate than the other locations. Which is it? 
 ```{r}
 #AIRPORT VENDING ESTABLISHMENT 
-tail(sort(tapply(data$Arrest, data$LocationDescription,mean)),1)
+tail(sort(tapply(data$Arrest, top5$LocationDescription,mean)),1)
 #使用tapply()看不同區域中,平均被逮捕數量的比例;並使用sort排序,接著運用tail(1),直接抓出最大比例的資料,即為AIRPORT VENDING ESTABLISHMENT
 ```
 
 【4.4】 On which day of the week do the most motor vehicle thefts at gas stations happen?
 ```{r}
 #禮拜六
-which.max(table(format(ts[data$LocationDescription=="GAS STATION"], "%u")))
+which.max(table(format(ts[data$LocationDescription=="GAS STATION"], "%w")))
 #將失竊地點設為加油站，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最多值(which.max)為周六
 ```
 
 【4.5】 On which day of the week do the fewest motor vehicle thefts in residential driveways happen?
 ```{r}
 #禮拜六
-which.min(table(format(ts[data$LocationDescription=="DRIVEWAY - RESIDENTIAL"], "%u")))
+which.min(table(format(ts[data$LocationDescription=="DRIVEWAY - RESIDENTIAL"], "%w")))
 #將失竊地點設為住宅車道，用Format萃取星期參數，並總覽(table)星期一到日的失竊數，最後取出最少值(which.min)為周六
 ```
 
