@@ -218,6 +218,7 @@ prop_arrest[12]
 
 ```{r}
 #DRIVEWAY-RESIDENTIAL/GAS STATION/ ALLEY/ PARKING LOT GARAGE(NON.RESID.)/STREET 
+tail(sort(table(data$LocationDescription)))[-4]
 top5 = tail(sort(table(data$LocationDescription)))[-4]
 #用table總攬每個地點的發生次數,再用sort排序,最後使用tail找出top6,並將區域"other"忽略
 #因此我們找出top5。
