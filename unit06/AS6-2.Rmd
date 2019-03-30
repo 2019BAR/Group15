@@ -179,7 +179,7 @@ hist(D)
 
 # Frame
 par(cex = 0.7) #畫出框框
-plot(0, 0, xlim = c(40, 100), ylim = c(0, 1.1), xlab = "等待發時間(分鐘)", 
+plot(0, 0, xlim = c(40, 100), ylim = c(0, 1.1), xlab = "等待時間(分鐘)", 
      ylab = "密度 or (累計)機率", main = "分布、機率與密度")
 abline(h = 1, col = 'lightgray', lwd = 0.25, lty = 2)
 
