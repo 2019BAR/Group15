@@ -108,10 +108,10 @@ pacman::p_load(dplyr)
 1. 
 Adjust=1 
 DEN = density(D, adjust = Adjust) 
-lines(DEN, col='gold', lwd=3)
+lines(DEN, col = 'gold', lwd = 3)
 ```
 ```
-2. PDF = approxfun(DEN$x, DEN$y, yleft=0, yright=0)
+2. PDF = approxfun(DEN$x, DEN$y, yleft = 0, yright = 0)
 ```
 ```
 3. 
@@ -120,7 +120,7 @@ integrate(PDF, x1, x2)$value
 ```
 4.
 x1 = 80; x2 = 90
-rect(x1,-0.1,x2,1.2,col= rgb(0,1,0,alpha=0.2),border=NA)
+rect(x1, -0.1, x2, 1.2, col= rgb(0, 1, 0, alpha = 0.2), border=NA)
 integrate(PDF, x1, x2)$value
 Probability = 0.2685065
 ```
@@ -153,13 +153,35 @@ abline(h = 1, col = 'lightgray', lwd = 0.25, lty = 2)
 Adjust = 0.5 
 DEN = density(faithful$eruptions, adjust = Adjust)
 lines(DEN, col = 'gold', lwd = 3)
-Ans: 由圖可知，將設在3.8 ~ 4.8分鐘間。
+Ans: 由圖可知，將設在3.9 ~ 4.9分鐘間 (47.7%)。
 
-3. -30 * 0.52 + 100 * 0.48 = 32.4 期望獎金: $32.4
+3. -30 * 0.523 + 70 * 0.47 = 17.21 期望獎金: $17.21
 ```
 假如賭場老闆從零開始把每10秒鐘設為一個區間，每個區間的賭金是五塊錢 ...<br>
 &emsp;■ 你要怎麼押注，才能獲得最高的期望值呢？<br>
 &emsp;■ 你的賭金和期望值各是多少？<br>
+```
+#4
+#因為由上題可知在3.9 ~ 4.9分鐘時發生機率最高，故將此60秒區隔為10秒賭一次，分別為228、238、248、258、268、278秒時投資一次
+```
+```{r}
+#5
+library(dplyr)
+W = faithful$eruptions
+Adjust = 0.5
+DEN = density(W, adjust = Adjust)
+# Smooth CDF
+PDF = approxfun(DEN$x, DEN$y, yleft = 0, yright = 0)
+x = seq(1, 6, 1/6)
+cx = sapply(x, function(x) integrate(PDF, -Inf, x)$value)
+p = cx - c(0, cx[1:(length(x)-1)])
+payoff = 100 * p - 5
+df = data.frame(x, cx, p, payoff)
+df = df[order(-df$payoff),]
+df$cumsum = cumsum(df$payoff)
+round(df[df$payoff > 0,], 3)
+```
+<br>
 將獲利的期望值和賭金的比值稱為「期望投資報酬率」 ...<br>
 &emsp;■ 「最大期望投資報酬率」和「最大期望報酬」的投資策略是一樣的嗎？<br>
 &emsp;■ 你認為哪一個策略目標比較好呢？ 為什麼？<br>
