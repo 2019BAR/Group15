@@ -8,8 +8,6 @@ output:
     logo: Logo.ico
     favicon: Logo.ico
 runtime: shiny
-navbar:
-      - { title: "About", href: "https://example.com/about", align: left }
 ---
 
 ```{r}
