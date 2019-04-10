@@ -1,0 +1,66 @@
+---
+title: "Olist 商業分析模擬"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: cerulean
+    css: JH.css
+    social: menu
+    logo: Logo.ico
+    favicon: Logo.ico
+runtime: shiny
+---
+
+```{r}
+library(shinyWidgets); library(flexdashboard); library(pwr)
+library(metRology); library(fitdistrplus); 
+library(ggpubr); library(lattice); library(gridExtra)
+```
+
+
+區域分析 {data-icon="fa-globe"}
+=====================================================================
+
+
+
+
+
+時間序列 {data-icon="fa-calendar"}
+=====================================================================
+
+
+
+
+消費者行為 {data-icon="fa-user-circle"}
+=====================================================================
+
+
+
+
+Google Maps {data-icon="fa-map-marker"}
+=====================================================================
+Row {.tabset}
+-------------------------------------
+    
+### Brazil
+    
+![](Brazil.png)
+   
+### Zip code
+    
+![](Zip_code.png)
+
+### Customers
+    
+![](Customers.png)
+    
+### Sellers
+
+![](Sellers.png)
+
+
+
+報告影片 {data-icon="fa-youtube"}
+=====================================================================
+<div class = "video-container">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V-P-zHUdKS8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
