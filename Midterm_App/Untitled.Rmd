@@ -8,6 +8,8 @@ output:
     logo: Logo.ico
     favicon: Logo.ico
 runtime: shiny
+navbar:
+      - { title: "About", href: "https://example.com/about", align: left }
 ---
 
 ```{r}
@@ -16,21 +18,27 @@ library(metRology); library(fitdistrplus);
 library(ggpubr); library(lattice); library(gridExtra)
 ```
 
-
-區域分析 {data-icon="fa-globe"}
+資料檢視 {data-icon="fa-sitemap"}
 =====================================================================
 
 
 
 
 
-時間序列 {data-icon="fa-calendar"}
+區域分析 {data-icon="fa-globe" data-navmenu="資料探索"}
 =====================================================================
 
 
 
 
-消費者行為 {data-icon="fa-user-circle"}
+
+時間序列 {data-icon="fa-calendar" data-navmenu="資料探索"}
+=====================================================================
+
+
+
+
+消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索"}
 =====================================================================
 
 
