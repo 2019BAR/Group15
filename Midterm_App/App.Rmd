@@ -17,6 +17,9 @@ library(dplyr)
 library(ggplot2)
 library(data.table)
 library(DT)
+if (!require('rsconnect')) install.packages('rsconnect')
+rsconnect::setAccountInfo(name='cometrue0614', token='3ABF9B17E8D0C07BA3D0317E70B90B0F', secret='amPPKi8mj7Iu1dXbHuEvR+BC15SGToXiFPsAxqf2')
+
 
 # set options/configuration
 knitr::opts_chunk$set(echo = FALSE)
@@ -24,15 +27,16 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r global, context="data", include = FALSE}
 # load data
-customers = fread("data/olist_customers_dataset.csv") %>% head(200)
-geolocation = fread("data/olist_geolocation_dataset.csv") %>% head(200)
-order_items = fread("data/olist_order_items_dataset.csv") %>% head(200)
-payments = fread("data/olist_order_payments_dataset.csv") %>% head(200)
-order_reviews = fread("data/olist_order_reviews_dataset.csv") %>% head(200)
-order = fread("data/olist_orders_dataset.csv") %>% head(200)
-products = fread("data/olist_products_dataset.csv") %>% head(200)
-sellers = fread("data/olist_sellers_dataset.csv") %>% head(200)
-cnt = fread("data/product_category_name_translation.csv") %>% head(200)
+customers = fread("data/olist_customers_dataset.csv") 
+# geolocation = fread("data/olist_geolocation_dataset.csv") 
+# order_items = fread("data/olist_order_items_dataset.csv")
+# payments = fread("data/olist_order_payments_dataset.csv") 
+# order_reviews = fread("data/olist_order_reviews_dataset.csv")
+# order = fread("data/olist_orders_dataset.csv") 
+# products = fread("data/olist_products_dataset.csv") 
+# sellers = fread("data/olist_sellers_dataset.csv") 
+# cnt = fread("data/product_category_name_translation.csv") 
+load("data/data.RData")
 ```
 
 報告影片 {data-icon="fa-youtube"}
@@ -285,4 +289,6 @@ Row {.tabset}
 ### Sellers
 
 ![](img/Sellers.png)
+
+
 
