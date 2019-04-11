@@ -14,6 +14,7 @@ runtime: shiny
 # load libraries
 library(shiny)
 library(dplyr)
+library(ggplot2)
 library(data.table)
 library(DT)
 
@@ -38,7 +39,7 @@ cnt = fread("data/product_category_name_translation.csv") %>% head(200)
 =====================================================================
 <iframe width="100%" height="100%" src="https://www.youtube.com/embed/V-P-zHUdKS8" frameborder="0" allowfullscreen></iframe>
 
-資料檢視 {data-icon="fa-sitemap" .storyboard}
+資料檢視 {data-icon="fa-sitemap" .storyboard data-navmenu="Datasets"}
 =====================================================================
 
 ### Customers Dataset <br> This dataset has information about the customer and its location. 
@@ -131,25 +132,138 @@ renderDataTable({
 })
 ```
 
-
-區域分析 {data-icon="fa-globe" data-navmenu="資料探索" .storyboard}
+資料繪圖 {data-icon="fa-paint-brush" data-navmenu="Datasets"}
 =====================================================================
 
+Column {.sidebar}
+-----------------------------------------------------------------------
 
+```{r}
+selectInput('xcol', 'X Variable', names(iris))
+    
+selectInput('ycol', 'Y Variable', names(iris),
+                selected=names(iris)[[2]])
+    
+numericInput('clusters', 'Cluster count', 3,
+              min = 1, max = 9)
+```
 
+Column
+-----------------------------------------------------------------------
 
+### K Means
 
-時間序列 {data-icon="fa-calendar" data-navmenu="資料探索" .storyboard}
+```{r}
+palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+  "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+
+# Combine the selected variables into a new data frame
+selectedData <- reactive({
+  iris[, c(input$xcol, input$ycol)]
+})
+
+clusters <- reactive({
+  kmeans(selectedData(), input$clusters)
+})
+
+renderPlot({
+  par(mar = c(5.1, 4.1, 0, 1))
+  plot(selectedData(),
+       col = clusters()$cluster,
+       pch = 20, cex = 3)
+  points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
+})
+```
+
+區位差異 {data-icon="fa-globe" data-navmenu="資料探索"}
 =====================================================================
 
+Row
+-----------------------------------------------------------------------
+
+### Scatter Chart with geom_point
+
+```{r}
+```
 
 
+### geom_smooth Linear Regression
 
-消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索" .storyboard}
+```{r}
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_smooth with Loess Smoothed Fit
+
+```{r}
+```
+
+### Constraining Slope with stat_smooth
+
+```{r}
+```
+
+時間序列 {data-icon="fa-calendar" data-navmenu="資料探索"}
 =====================================================================
 
+Row
+-----------------------------------------------------------------------
+
+### Scatter Chart with geom_point
+
+```{r}
+```
 
 
+### geom_smooth Linear Regression
+
+```{r}
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_smooth with Loess Smoothed Fit
+
+```{r}
+```
+
+### Constraining Slope with stat_smooth
+
+```{r}
+```
+
+消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索"}
+=====================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Scatter Chart with geom_point
+
+```{r}
+```
+
+
+### geom_smooth Linear Regression
+
+```{r}
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_smooth with Loess Smoothed Fit
+
+```{r}
+```
+
+### Constraining Slope with stat_smooth
+
+```{r}
+```
 
 Google Maps {data-icon="fa-map-marker"}
 =====================================================================
