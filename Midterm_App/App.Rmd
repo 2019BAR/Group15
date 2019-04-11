@@ -16,10 +16,10 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 library(data.table)
+library(flexdashboard)
 library(DT)
 if (!require('rsconnect')) install.packages('rsconnect')
 rsconnect::setAccountInfo(name='cometrue0614', token='3ABF9B17E8D0C07BA3D0317E70B90B0F', secret='amPPKi8mj7Iu1dXbHuEvR+BC15SGToXiFPsAxqf2')
-
 
 # set options/configuration
 knitr::opts_chunk$set(echo = FALSE)
@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r global, context="data", include = FALSE}
 # load data
-customers = fread("data/olist_customers_dataset.csv") 
+# customers = fread("data/olist_customers_dataset.csv") 
 # geolocation = fread("data/olist_geolocation_dataset.csv") 
 # order_items = fread("data/olist_order_items_dataset.csv")
 # payments = fread("data/olist_order_payments_dataset.csv") 
@@ -50,7 +50,7 @@ load("data/data.RData")
 
 ```{r}
 renderDataTable({
-  DT::datatable(customers, options = list(
+  DT::datatable(head(customers, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -60,7 +60,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(geolocation, options = list(
+  DT::datatable(head(geolocation, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -70,7 +70,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(order_items, options = list(
+  DT::datatable(head(order_items, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -80,7 +80,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(payments, options = list(
+  DT::datatable(head(payments, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -90,7 +90,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(order_reviews, options = list(
+  DT::datatable(head(order_reviews, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -100,7 +100,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(order, options = list(
+  DT::datatable(head(order, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -110,7 +110,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(products, options = list(
+  DT::datatable(head(products, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -120,7 +120,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(sellers, options = list(
+  DT::datatable(head(sellers, 16), options = list(
     bPaginate = FALSE
   ))
 })
@@ -130,7 +130,7 @@ renderDataTable({
 
 ```{r}
 renderDataTable({
-  DT::datatable(cnt, options = list(
+  DT::datatable(head(cnt, 16), options = list(
     bPaginate = FALSE
   ))
 })
