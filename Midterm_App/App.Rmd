@@ -1,0 +1,174 @@
+---
+title: "Olist 商業分析模擬"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: cerulean
+    css: JH.css
+    social: menu
+    logo: img/Logo.ico
+    favicon: img/Logo.ico
+runtime: shiny
+---
+
+```{r, context = "setup", include = FALSE}
+# load libraries
+library(shiny)
+library(dplyr)
+library(data.table)
+library(DT)
+
+# set options/configuration
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r global, context="data", include = FALSE}
+# load data
+customers = fread("data/olist_customers_dataset.csv") %>% head(200)
+geolocation = fread("data/olist_geolocation_dataset.csv") %>% head(200)
+order_items = fread("data/olist_order_items_dataset.csv") %>% head(200)
+payments = fread("data/olist_order_payments_dataset.csv") %>% head(200)
+order_reviews = fread("data/olist_order_reviews_dataset.csv") %>% head(200)
+order = fread("data/olist_orders_dataset.csv") %>% head(200)
+products = fread("data/olist_products_dataset.csv") %>% head(200)
+sellers = fread("data/olist_sellers_dataset.csv") %>% head(200)
+cnt = fread("data/product_category_name_translation.csv") %>% head(200)
+```
+
+報告影片 {data-icon="fa-youtube"}
+=====================================================================
+<iframe width="100%" height="100%" src="https://www.youtube.com/embed/V-P-zHUdKS8" frameborder="0" allowfullscreen></iframe>
+
+資料檢視 {data-icon="fa-sitemap" .storyboard}
+=====================================================================
+
+### Customers Dataset <br> This dataset has information about the customer and its location. 
+
+```{r}
+renderDataTable({
+  DT::datatable(customers, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Geolocation Dataset <br> This dataset has information Brazilian zip codes and its lat/lng coordinates.
+
+```{r}
+renderDataTable({
+  DT::datatable(geolocation, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Order Items Dataset <br> This dataset includes data about the items purchased within each order.
+
+```{r}
+renderDataTable({
+  DT::datatable(order_items, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Payments Dataset <br> This dataset includes data about the orders payment options.
+
+```{r}
+renderDataTable({
+  DT::datatable(payments, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Order Reviews Dataset <br> This dataset includes data about the reviews made by the customers.
+
+```{r}
+renderDataTable({
+  DT::datatable(order_reviews, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Order Dataset <br> This is the core dataset. From each order you might find all other information.
+
+```{r}
+renderDataTable({
+  DT::datatable(order, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Products Dataset <br> This dataset includes data about the products sold by Olist.
+
+```{r}
+renderDataTable({
+  DT::datatable(products, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Sellers Dataset <br> This dataset includes data about the sellers that fulfilled orders made at Olist.
+
+```{r}
+renderDataTable({
+  DT::datatable(sellers, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Category Name Translation <br> Translates the product_category_name to english.
+
+```{r}
+renderDataTable({
+  DT::datatable(cnt, options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+
+區域分析 {data-icon="fa-globe" data-navmenu="資料探索" .storyboard}
+=====================================================================
+
+
+
+
+
+時間序列 {data-icon="fa-calendar" data-navmenu="資料探索" .storyboard}
+=====================================================================
+
+
+
+
+消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索" .storyboard}
+=====================================================================
+
+
+
+
+Google Maps {data-icon="fa-map-marker"}
+=====================================================================
+Row {.tabset}
+-------------------------------------
+    
+### Brazil
+    
+![](img/Brazil.png)
+   
+### Zip code
+    
+![](img/Zip_code.png)
+
+### Customers
+    
+![](img/Customers.png)
+    
+### Sellers
+
+![](img/Sellers.png)
+
