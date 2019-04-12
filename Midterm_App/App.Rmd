@@ -1,0 +1,278 @@
+---
+title: "Olist 商業分析模擬"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: cerulean
+    css: JH.css
+    social: menu
+    logo: img/Logo.ico
+    favicon: img/Logo.ico
+runtime: shiny
+---
+
+```{r, context = "setup", include = FALSE}
+# load libraries
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+library(flexdashboard)
+library(DT)
+if (!require('rsconnect')) install.packages('rsconnect')
+rsconnect::setAccountInfo(name='cometrue0614', token='3ABF9B17E8D0C07BA3D0317E70B90B0F', secret='amPPKi8mj7Iu1dXbHuEvR+BC15SGToXiFPsAxqf2')
+
+# set options/configuration
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r global, context="data", include = FALSE}
+# load data
+# customers = fread("data/olist_customers_dataset.csv") 
+# geolocation = fread("data/olist_geolocation_dataset.csv") 
+# order_items = fread("data/olist_order_items_dataset.csv")
+# payments = fread("data/olist_order_payments_dataset.csv") 
+# order_reviews = fread("data/olist_order_reviews_dataset.csv")
+# order = fread("data/olist_orders_dataset.csv") 
+# products = fread("data/olist_products_dataset.csv") 
+# sellers = fread("data/olist_sellers_dataset.csv") 
+# cnt = fread("data/product_category_name_translation.csv") 
+load("data/data.RData")
+```
+
+報告影片 {data-icon="fa-youtube"}
+=====================================================================
+<iframe width="100%" height="100%" src="https://www.youtube.com/embed/TcMBFSGVi1c" frameborder="0" allowfullscreen></iframe>
+
+資料檢視 {data-icon="fa-sitemap" .storyboard data-navmenu="Datasets"}
+=====================================================================
+
+### Customers Dataset <br> This dataset has information about the customer and its location. 
+
+```{r}
+renderDataTable({
+  DT::datatable(head(customers, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Geolocation Dataset <br> This dataset has information Brazilian zip codes and its lat/lng coordinates.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(geolocation, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Order Items Dataset <br> This dataset includes data about the items purchased within each order.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(order_items, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Payments Dataset <br> This dataset includes data about the orders payment options.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(payments, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Order Reviews Dataset <br> This dataset includes data about the reviews made by the customers.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(order_reviews, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Order Dataset <br> This is the core dataset. From each order you might find all other information.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(order, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Products Dataset <br> This dataset includes data about the products sold by Olist.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(products, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Sellers Dataset <br> This dataset includes data about the sellers that fulfilled orders made at Olist.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(sellers, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+### Category Name Translation <br> Translates the product_category_name to english.
+
+```{r}
+renderDataTable({
+  DT::datatable(head(cnt, 16), options = list(
+    bPaginate = FALSE
+  ))
+})
+```
+
+資料繪圖 {data-icon="fa-paint-brush" data-navmenu="Datasets"}
+=====================================================================
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput('xcol', 'X Variable', names(iris))
+    
+selectInput('ycol', 'Y Variable', names(iris),
+                selected=names(iris)[[2]])
+    
+numericInput('clusters', 'Cluster count', 3,
+              min = 1, max = 9)
+```
+
+Column
+-----------------------------------------------------------------------
+
+### K Means
+
+```{r}
+palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+  "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+
+# Combine the selected variables into a new data frame
+selectedData <- reactive({
+  iris[, c(input$xcol, input$ycol)]
+})
+
+clusters <- reactive({
+  kmeans(selectedData(), input$clusters)
+})
+
+renderPlot({
+  par(mar = c(5.1, 4.1, 0, 1))
+  plot(selectedData(),
+       col = clusters()$cluster,
+       pch = 20, cex = 3)
+  points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
+})
+```
+
+地理區位 {data-icon="fa-globe" data-navmenu="資料探索"}
+=====================================================================
+
+Column 2 {.tabset data-width=70%}
+-----------------------------------------------------------------------
+
+### 訂單所在地區
+
+![](img/Regional_Analysis/Picture1.png)
+
+### 賣家分佈地圖
+
+![](img/Regional_Analysis/Picture2.png)
+
+### 消費者分布地圖
+
+![](img/Regional_Analysis/Picture3.png)
+
+### 總銷售金額分佈
+
+![](img/Regional_Analysis/Picture4.png)
+
+### 總運費金額分佈
+
+![](img/Regional_Analysis/Picture5.png)
+
+
+Column2 {data-width=30%}
+-----------------------------------------------------------------------
+
+### ddsad
+
+
+時間序列 {data-icon="fa-calendar" data-navmenu="資料探索"}
+=====================================================================
+
+### ddsad
+
+文字分析 {data-icon="fa-calendar" data-navmenu="資料探索"}
+=====================================================================
+
+### ddsad
+
+消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索"}
+=====================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Scatter Chart with geom_point
+
+```{r}
+```
+
+
+### geom_smooth Linear Regression
+
+```{r}
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_smooth with Loess Smoothed Fit
+
+```{r}
+```
+
+### Constraining Slope with stat_smooth
+
+```{r}
+```
+
+Google Maps {data-icon="fa-map-marker"}
+=====================================================================
+
+Row {.tabset}
+-------------------------------------
+    
+### Brazil
+    
+![](img/Brazil.png)
+   
+### Zip code
+    
+![](img/Zip_code.png)
+
+### Customers
+    
+![](img/Customers.png)
+    
+### Sellers
+
+![](img/Sellers.png)
+
+
+
