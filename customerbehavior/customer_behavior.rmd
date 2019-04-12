@@ -51,31 +51,33 @@ library(widyr)
 
 ### 讀入data
 ```{r results = "hide"}
-order = fread("olist_orders_dataset.csv") # 訂單與運送狀態
-review = fread("olist_order_reviews_dataset11.csv", encoding = "UTF-8") # 商品滿意度調查
-payment = fread("olist_order_payments_dataset.csv") # 付款方式
-item = fread("olist_order_items_dataset.csv") # 訂單價值
-customer = fread("olist_customers_dataset.csv") # 客戶資料
-product = fread("olist_products_dataset.csv") # 產品資訊
-seller = fread("olist_sellers_dataset.csv") # 賣家資訊
-geolocation = fread("olist_geolocation_dataset.csv") # 巴西郵遞區號與地理位置
-name = fread("product_category_name_translation.csv") # 英文名
-
-# 整理data
-# 依照orderID
-df =merge(order, review, by = "order_id", all = TRUE)
-df =merge(df,payment, by = "order_id", all = TRUE)
-df =merge(df,item, by = "order_id", all = TRUE)
-# 依照customerID
-df =merge(df,customer, by = "customer_id", all = TRUE)
-# 依照sellerID
-df =merge(df,seller, by = "seller_id", all = TRUE)
-# 依照productID
-df =merge(df,product, by = "product_id", all = TRUE)
-# 依照product_category_name
-df =merge(df,name, by = "product_category_name", x.all = TRUE)
-# 剩餘zipcode之後再做比較
-
+load("0410_wenyu.rda")
+# order = fread("olist_orders_dataset.csv") # 訂單與運送狀態
+# review = fread("olist_order_reviews_dataset11.csv", encoding = "UTF-8") # 商品滿意度調查
+# payment = fread("olist_order_payments_dataset.csv") # 付款方式
+# item = fread("olist_order_items_dataset.csv") # 訂單價值
+# customer = fread("olist_customers_dataset.csv") # 客戶資料
+# product = fread("olist_products_dataset.csv") # 產品資訊
+# seller = fread("olist_sellers_dataset.csv") # 賣家資訊
+# geolocation = fread("olist_geolocation_dataset.csv") # 巴西郵遞區號與地理位置
+# name = fread("product_category_name_translation.csv") # 英文名
+# 
+# # 整理data
+# # 依照orderID
+# df =merge(order, review, by = "order_id", all = TRUE)
+# df =merge(df,payment, by = "order_id", all = TRUE)
+# df =merge(df,item, by = "order_id", all = TRUE)
+# # 依照customerID
+# df =merge(df,customer, by = "customer_id", all = TRUE)
+# # 依照sellerID
+# df =merge(df,seller, by = "seller_id", all = TRUE)
+# # 依照productID
+# df =merge(df,product, by = "product_id", all = TRUE)
+# # 依照product_category_name
+# df =merge(df,name, by = "product_category_name", x.all = TRUE)
+# # 剩餘zipcode之後再做比較
+```
+```{r}
 #篩掉同一個訂單
 o=df[!duplicated(df$order_id), ] 
 
@@ -529,3 +531,5 @@ r %>%
 
 +  平台機會：  
   提升物流，以提高評價，並連動提高銷售量；  
+
+
