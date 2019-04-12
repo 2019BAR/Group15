@@ -76,8 +76,7 @@ load("0410_wenyu.rda")
 # # 依照product_category_name
 # df =merge(df,name, by = "product_category_name", x.all = TRUE)
 # # 剩餘zipcode之後再做比較
-```
-```{r}
+
 #篩掉同一個訂單
 o=df[!duplicated(df$order_id), ] 
 
@@ -89,8 +88,8 @@ o=df[!duplicated(df$order_id), ]
 ```{r}
 ### table(df$order_purchase_timestamp) %>% sort # 以月分劃分是最洽當的
 ts=as.POSIXct(o$order_purchase_timestamp, format="%Y-%m-%d %H:%M:%S")
-par(cex=0.7)
-hist(ts,"month",las=2,freq=T,xlab="",main ="各月份訂單數")
+par(cex=0.8)
+hist(ts,"month",las=2,freq=T,xlab="",main ="各月份訂單數",col ="#FF7744")
 ### 細分
 o$date= as.Date(o$order_purchase_timestamp,format="%Y-%m-%d") 
 lim <- as.Date(c("2017-01-01","2018-09-01"))
@@ -100,11 +99,10 @@ qplot(data=o,
   # fill = customer_city) + # 依地區分 
   labs(x = "日期",y = "數量") + 
   scale_x_date(date_breaks="months",limits = lim) + 
-  ggtitle("各月份訂單數")+ 
+  ggtitle("細分訂單數")+ 
   theme_economist() + 
   scale_color_economist()+
-  theme(legend.position='none')+
-  theme(axis.text.x = element_text(angle = -90)) 
+  theme(legend.position='none')
 summary(o$order_id) # 總共97256筆
 ```
 
@@ -215,6 +213,24 @@ df$product_category_name_english %>% table %>%  sort %>%
   scale_color_economist()+
   theme(legend.position='none')+
   theme(axis.text.x = element_text(angle = -90)) 
+```
+
+### (五) 習慣支付方式：
+```{r}
+as.data.frame(table(o$payment_type))%>%
+  ggplot+
+  geom_bar(aes(x=factor(1),
+               y=Freq,
+               fill=Var1),
+           stat = "identity",
+           position = 'fill') +
+  coord_polar("y", start=0)+
+  labs(x = "",y = "")+
+  ggtitle("習慣支付方式")+
+  scale_fill_discrete(name="支付方式",
+                      breaks=c("boleto", "credit_card","debit_card","voucher"),
+                      labels=c("boleto本地現金支付方式", "信用卡","金融卡","禮券，代金券"))+ 
+  scale_y_continuous(labels = percent_format())
 ```
 
 ### (五) 單筆消費商品金額(不含運費)：以每筆訂單去做的單次購買商品的金額  
@@ -531,5 +547,3 @@ r %>%
 
 +  平台機會：  
   提升物流，以提高評價，並連動提高銷售量；  
-
-
