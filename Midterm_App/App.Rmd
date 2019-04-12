@@ -15,7 +15,6 @@ runtime: shiny
 library(shiny)
 library(dplyr)
 library(ggplot2)
-library(data.table)
 library(flexdashboard)
 library(DT)
 if (!require('rsconnect')) install.packages('rsconnect')
@@ -42,6 +41,7 @@ load("data/data.RData")
 報告影片 {data-icon="fa-youtube"}
 =====================================================================
 <iframe width="100%" height="100%" src="https://www.youtube.com/embed/TcMBFSGVi1c" frameborder="0" allowfullscreen></iframe>
+
 
 資料檢視 {data-icon="fa-sitemap" .storyboard data-navmenu="Datasets"}
 =====================================================================
@@ -136,6 +136,10 @@ renderDataTable({
 })
 ```
 
+
+
+
+
 資料繪圖 {data-icon="fa-paint-brush" data-navmenu="Datasets"}
 =====================================================================
 
@@ -179,78 +183,101 @@ renderPlot({
 })
 ```
 
+
 地理區位 {data-icon="fa-globe" data-navmenu="資料探索"}
 =====================================================================
 
-Column 2 {.tabset data-width=70%}
+Row {.tabset}
 -----------------------------------------------------------------------
 
-### 訂單所在地區
+### 訂單所在地區 
 
-![](img/Regional_Analysis/Picture1.png)
+![](img/Regional_Analysis/)
 
-### 賣家分佈地圖
+### 賣家分佈地圖 
 
-![](img/Regional_Analysis/Picture2.png)
-
+![](img/Regional_Analysis/)
 ### 消費者分布地圖
 
-![](img/Regional_Analysis/Picture3.png)
-
+![](img/Regional_Analysis/)
 ### 總銷售金額分佈
 
-![](img/Regional_Analysis/Picture4.png)
-
+![](img/Regional_Analysis/)
 ### 總運費金額分佈
 
-![](img/Regional_Analysis/Picture5.png)
-
-
-Column2 {data-width=30%}
------------------------------------------------------------------------
-
-### ddsad
+![](img/Regional_Analysis/)
 
 
 時間序列 {data-icon="fa-calendar" data-navmenu="資料探索"}
 =====================================================================
 
-### ddsad
-
-文字分析 {data-icon="fa-calendar" data-navmenu="資料探索"}
-=====================================================================
-
-### ddsad
-
-消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索"}
-=====================================================================
-
-Row
+Row {.tabset}
 -----------------------------------------------------------------------
 
-### Scatter Chart with geom_point
+### 訂單趨勢分析  
 
-```{r}
-```
+![](img/Time_Series/)
+
+### 各月份訂單數量
+
+![](img/Time_Series/)
+
+### 特殊節日對於訂單量的影響
+
+![](img/Time_Series/)
 
 
-### geom_smooth Linear Regression
+消費習慣 {data-icon="fa-user-circle" data-navmenu="資料探索"}
+=====================================================================
 
-```{r}
-```
-
-Row
+Row {.tabset}
 -----------------------------------------------------------------------
 
-### geom_smooth with Loess Smoothed Fit
+### 偏好消費時間
 
-```{r}
-```
+![](img/Consuming_Habits/)
 
-### Constraining Slope with stat_smooth
+### 在平台上的消費次數
 
-```{r}
-```
+![](img/Consuming_Habits/)
+
+### 主要支付方式
+
+![](img/Consuming_Habits/)
+
+### 熱門商品
+
+![](img/Consuming_Habits/)
+
+### TOP5地區的銷售金額分佈
+
+![](img/Consuming_Habits/)
+
+### TOP5商品的總銷售金額
+
+![](img/Consuming_Habits/)
+
+### TOP5商品在TOP5地區的銷售分佈
+
+![](img/Customers_Habits/)
+
+顧客評價 {data-icon="fa-comment" data-navmenu="資料探索"}
+=====================================================================
+
+Row {.tabset}
+-----------------------------------------------------------------------
+
+### 評價分數與趨勢
+
+![](img/Customers_Reviews/)
+
+### 文字評論
+
+![](img/Customers_Reviews/)
+
+### 銷量與評分關聯
+
+![](img/Customers_Reviews/)
 
 Google Maps {data-icon="fa-map-marker"}
 =====================================================================
