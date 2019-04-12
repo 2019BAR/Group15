@@ -41,7 +41,7 @@ load("data/data.RData")
 
 報告影片 {data-icon="fa-youtube"}
 =====================================================================
-<iframe width="100%" height="100%" src="https://www.youtube.com/embed/V-P-zHUdKS8" frameborder="0" allowfullscreen></iframe>
+<iframe width="100%" height="100%" src="https://www.youtube.com/embed/TcMBFSGVi1c" frameborder="0" allowfullscreen></iframe>
 
 資料檢視 {data-icon="fa-sitemap" .storyboard data-navmenu="Datasets"}
 =====================================================================
@@ -179,65 +179,43 @@ renderPlot({
 })
 ```
 
-區位差異 {data-icon="fa-globe" data-navmenu="資料探索"}
+地理區位 {data-icon="fa-globe" data-navmenu="資料探索"}
 =====================================================================
 
-Row
+Column 2 {.tabset data-width=70%}
 -----------------------------------------------------------------------
 
-### Scatter Chart with geom_point
+### 訂單所在地區
 
-```{r}
-```
+![](img/Regional_Analysis/Picture1.png)
+
+### 賣家分佈地圖
+
+![](img/Regional_Analysis/Picture2.png)
+
+### 消費者分布地圖
+
+![](img/Regional_Analysis/Picture3.png)
+
+### 總銷售金額分佈
+
+![](img/Regional_Analysis/Picture4.png)
+
+### 總運費金額分佈
+
+![](img/Regional_Analysis/Picture5.png)
 
 
-### geom_smooth Linear Regression
-
-```{r}
-```
-
-Row
+Column2 {data-width=30%}
 -----------------------------------------------------------------------
 
-### geom_smooth with Loess Smoothed Fit
+### ddsad
 
-```{r}
-```
-
-### Constraining Slope with stat_smooth
-
-```{r}
-```
 
 時間序列 {data-icon="fa-calendar" data-navmenu="資料探索"}
 =====================================================================
 
-Row
------------------------------------------------------------------------
-
-### Scatter Chart with geom_point
-
-```{r}
-```
-
-
-### geom_smooth Linear Regression
-
-```{r}
-```
-
-Row
------------------------------------------------------------------------
-
-### geom_smooth with Loess Smoothed Fit
-
-```{r}
-```
-
-### Constraining Slope with stat_smooth
-
-```{r}
-```
+### ddsad
 
 消費者行為 {data-icon="fa-user-circle" data-navmenu="資料探索"}
 =====================================================================
@@ -271,6 +249,7 @@ Row
 
 Google Maps {data-icon="fa-map-marker"}
 =====================================================================
+
 Row {.tabset}
 -------------------------------------
     
