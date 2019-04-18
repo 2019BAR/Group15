@@ -1,0 +1,455 @@
+---
+title: "FIRSTTRY"
+author: "Alex Hsu"
+date: "2019年4月4日"
+output: html_document
+---
+```{r include = FALSE}
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(scales)
+library(ggthemes)
+library(leaflet)
+library(wordcloud2)
+if(!require(pacman)) install.packages("pacman")
+pacman::p_load(dplyr, d3heatmap)
+library(tidytext)
+library(tidyr)
+library(stringr)
+library(stringi)
+library(lubridate)
+library(Imap)
+library(gcookbook) 
+library(grid) 
+```
+
+# 讀資料
+```{r results = "hide"}
+# read data
+order = fread("olist_orders_dataset.csv") # 訂單與運送狀態
+review = fread("olist_order_reviews_dataset11.csv", encoding = "UTF-8") # 商品滿意度調查
+payment = fread("olist_order_payments_dataset.csv") # 付款方式
+item = fread("olist_order_items_dataset.csv") # 訂單價值
+customer = fread("olist_customers_dataset.csv") # 客戶資料
+product = fread("olist_products_dataset.csv") # 產品資訊
+seller = fread("olist_sellers_dataset.csv") # 賣家資訊
+geolocation = fread("olist_geolocation_dataset.csv") # 巴西郵遞區號與地理位置
+name = fread("product_category_name_translation.csv") # 英文名
+
+
+# 整理data
+# 依照orderID
+df =merge(order, review, by = "order_id", all = TRUE)
+df =merge(df,payment, by = "order_id", all = TRUE)
+df =merge(df,item, by = "order_id", all = TRUE)
+# 依照customerID
+df =merge(df,customer, by = "customer_id", all = TRUE)
+# 依照sellerID
+df =merge(df,seller, by = "seller_id", all = TRUE)
+# 依照productID
+df =merge(df,product, by = "product_id", all = TRUE)
+# 依照product_category_name
+df =merge(df,name, by =  "product_category_name", x.all = TRUE)
+# 剩餘zipcode之後再做比較
+
+# 檢視資料
+
+# 時間資料: Year-Month-Day Hour:Minute:Second
+#order_purchase_timestamp/order_approved_at/order_delivered_carrier_date/order_delivered_customer_date/ 
+#order_estimated_delivery_date/review_creation_date/review_answer_timestamp/ shipping_limit_date
+#as.POSIXct(df$order_purchase_timestamp,format="%Y-%m-%d %H:%M:%S")
+```
+
+# 客戶分析
+### 各地區訂單數:主要訂單地區  
+```
+SP聖保羅州 40801 /RJ里約熱內盧 12569 /MG米纳斯吉拉斯 11375 /RS南大河州  /PR巴拉那 /SC聖卡塔琳娜.....
+這些州的特性???
+```
+
+```{r}
+axis_theme<-theme( #用來調整圖形的X,Y軸圖像
+  axis.title=element_text(
+    #family=NULL,
+    face = "bold", #字体("plain", "italic", "bold", "bold.italic")
+    colour = "red", #字体颜色
+    size = 20,#字体大小
+    hjust = .5, #调整轴标题1：纵轴靠上，横轴靠右；0.5居中；0：纵轴靠下，横轴靠左
+    vjust = .5, #1：靠图边框；0靠近轴线；.5居中
+    angle = 0 #为什么只对横轴标题有作用？
+ ),
+  axis.title.x=element_text(colour="blue",vjust=-3),#x轴标题设置，优先级高于axis.title
+  axis.title.y=element_text(colour="orange",vjust=5),#同上
+  axis.text=element_text(colour="red"),#设置坐标轴刻度数字
+  axis.text.x=element_text(colour="blue"),#优先级高于aixis.text
+  axis.text.y=element_text(colour="orange"),#同上
+  axis.ticks=element_line(#坐标轴刻度线的设置
+    colour="red",
+    size=0.05,
+    linetype=1,
+    lineend=1),
+  axis.ticks.x=element_line(colour="blue"),#优先级高于axis.ticks
+  axis.ticks.y=element_line(colour="orange"),#同上
+  axis.ticks.length=unit(.4,"lines"),#设置刻度线的高度
+  axis.ticks.margin=unit(10,"mm"),#设置刻度数字与刻度线的距离
+  axis.line=element_line(#设置轴线
+    colour="red"),
+  axis.line.x=element_line(colour="white"),#设置x轴线，优先于axis.line
+  axis.line.y=element_line(colour="white"))#类似axis.line.
+
+
+o=df[!duplicated(df$order_id), ]  #篩掉同一個訂單
+table(o$customer_state) %>%sort #依據州排序訂單量
+  qplot(data=o,x=customer_state,geom = "bar")+ 
+    labs(x = "Cusotomer_State",y = "Total_amount",title = "Regional Distribution_Orders" )+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+    theme(panel.background = element_rect(size = 2)) +
+    theme(plot.background = element_rect( size = 1, linetype = 4), 
+          plot.title = element_text(colour = "black", face = "bold", 
+    size = 30, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))+axis_theme
+
+
+```
+
+
+### 各地區的銷售數量排行
+```{r}
+df$customer_state %>% table %>%  sort %>% #依據州來排序訂單
+  as.data.frame %>% 
+  ggplot(aes(x=.,y=Freq))+
+  geom_bar(stat="identity")+
+  labs(x = "Cusotomer_State",y = "Total_amount",title = "Regional Ranking_Orders" )+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+```
+### 各地區銷售金額排行
+```{r}
+state_money= select(df, customer_state, price, freight_value) #挑選出州,商品單價及運費
+state_money %>% mutate(total_value=price+freight_value) %>% #總金額=商品單價+商品運費
+  group_by(customer_state)%>% #依照州分類     
+  summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>% #運算總金額以及平均金額 
+  arrange(sum_value)%>% as.data.frame %>% tail %>% #依照總金額進行排序，取出前五名
+  ggplot(aes(x=customer_state,y=sum_value))+ #X軸為州名稱,Y軸為總銷售金額
+  geom_bar(stat="identity")+
+  labs(x = "地區名稱",y = "銷售金額" ,title = "地區排行")+
+  theme_excel() + 
+  theme_economist()+ 
+  theme_economist_white()+
+  theme(axis.text.x = element_text(angle = 90))
+
+axis_theme<-theme(
+  axis.title=element_text(
+    #family=NULL,
+    face = "bold", #字体("plain", "italic", "bold", "bold.italic")
+    colour = "red", #字体颜色
+    size = 15,#字体大小
+    hjust = .5, #调整轴标题1：纵轴靠上，横轴靠右；0.5居中；0：纵轴靠下，横轴靠左
+    vjust = .5, #1：靠图边框；0靠近轴线；.5居中
+    angle = 0 #为什么只对横轴标题有作用？
+ ),
+  axis.title.x=element_text(colour="blue"),#x轴标题设置，优先级高于axis.title
+  axis.title.y=element_text(colour="orange",vjust=5),#同上
+  axis.text=element_text(colour="red"),#设置坐标轴刻度数字
+  axis.text.x=element_text(colour="blue"),#优先级高于aixis.text
+  axis.text.y=element_text(colour="orange"),#同上
+  axis.ticks=element_line(#坐标轴刻度线的设置
+    colour="red",
+    size=.5,
+    linetype=1,
+    lineend=1),
+  axis.ticks.x=element_line(colour="blue"),#优先级高于axis.ticks
+  axis.ticks.y=element_line(colour="orange"),#同上
+  axis.ticks.length=unit(.4,"lines"),#设置刻度线的高度
+  axis.ticks.margin=unit(.4,"cm"),#设置刻度数字与刻度线的距离
+  axis.line=element_line(#设置轴线
+    colour="red"),
+  axis.line.x=element_line(colour="white"),#设置x轴线，优先于axis.line
+  axis.line.y=element_line(colour="white"))#类似axis.line.
+
+state_money %>% mutate(total_value=price+freight_value) %>% #總金額=商品單價+商品運費
+  group_by(customer_state) %>% 
+  summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>%
+  arrange(sum_value)%>% as.data.frame %>% 
+  
+ggplot(aes(x=customer_state,y=sum_value)) + 
+  geom_bar(aes(fill=customer_state),position="stack",stat="identity")+ #不同地區依照不同顏色區分
+  labs(x = "Cusotomer_State",y = "Total Sales amount",title = "Regional Ranking_Total Sales" )+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+ #加上axis_theme調整字型大小
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+
+
+
+state_money %>% mutate(total_value=price+freight_value) %>% 
+  group_by(customer_state) %>%         
+  summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>%
+  arrange(sum_value)%>% as.data.frame %>% tail %>% #依照上一張圖，取出前五名
+  
+ggplot(aes(x=customer_state,y=sum_value)) + 
+  geom_bar(aes(fill=customer_state),position="stack",stat="identity")+ #依照不同地區採不同顏色
+  labs(x = "Cusotomer_State",y = "Total Sales amount",title = "Regional Ranking_Total Sales" )+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+  
+```
+### 各地區運費金額排行
+```{r}
+state_freight= select(df, customer_state, price, freight_value) #與運費有關的數據
+
+state_freight %>% group_by(customer_state) %>% #依照州排序運費
+  summarize(sum_freight=sum(freight_value),mean_freight=mean(freight_value)) %>% #總運費金額及平均運費
+  arrange(mean_freight) %>%  
+  ggplot(aes(x=customer_state,y=mean_freight))+ #x軸為州,y軸為平均運費
+  geom_bar(aes(fill=customer_state),stat="identity",position="stack")+ #不同州不同顏色
+  labs(x = "Cusotomer_State",y = "Shipping amount" ,title = "Regional_Ranking_Mean_Shipping")+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+state_freight= select(df, customer_state, price, freight_value)
+
+state_freight %>% group_by(customer_state) %>%
+  summarize(sum_freight=sum(freight_value),mean_freight=mean(freight_value)) %>%
+  arrange(mean_freight) %>% tail %>% #採平均運費做排序，且只選取前五名
+  ggplot(aes(x=customer_state,y=mean_freight))+
+  geom_bar(aes(fill=customer_state),stat="identity",position="stack")+
+  labs(x = "Cusotomer_State",y = "Shipping amount" ,title = "Regional_TOP5_Mean_Shipping")+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+  
+
+
+
+```
+
+### 最主要地區人們單筆消費金額
+SP,RJ,MG,PR,RS
+```{r warning=F}
+axis_theme_2<-theme( #不同的圖，需要不同的字體大小，比較美觀
+  axis.title=element_text(
+    #family=NULL,
+    face = "bold", #字体("plain", "italic", "bold", "bold.italic")
+    colour = "red", #字体颜色
+    size = 10,#字体大小
+    hjust = .5, #调整轴标题1：纵轴靠上，横轴靠右；0.5居中；0：纵轴靠下，横轴靠左
+    vjust = .5, #1：靠图边框；0靠近轴线；.5居中
+    angle = 0 #为什么只对横轴标题有作用？
+ ),
+  axis.title.x=element_text(colour="blue",vjust=-3,size=15),#x轴标题设置，优先级高于axis.title
+  axis.title.y=element_text(colour="orange",vjust=5,size=15),#同上
+  axis.text=element_text(colour="red"),#设置坐标轴刻度数字
+  axis.text.x=element_text(colour="blue"),#优先级高于aixis.text
+  axis.text.y=element_text(colour="orange"),#同上
+  axis.ticks=element_line(#坐标轴刻度线的设置
+    colour="red",
+    size=.01,
+    linetype=1,
+    lineend=1),
+  axis.ticks.x=element_line(colour="blue"),#优先级高于axis.ticks
+  axis.ticks.y=element_line(colour="orange"),#同上
+  axis.ticks.length=unit(.4,"lines"),#设置刻度线的高度
+  axis.ticks.margin=unit(.4,"cm"),#设置刻度数字与刻度线的距离
+  axis.line=element_line(#设置轴线
+    colour="red"),
+  axis.line.x=element_line(colour="white"),#设置x轴线，优先于axis.line
+  axis.line.y=element_line(colour="white"))#类似axis.line.
+
+mainstate = df %>% #選取總銷額金額top5的五大洲
+  filter(customer_state == "SP" | customer_state == "RJ" | 
+           customer_state == "MG"| customer_state == "PR"| customer_state == "RS")
+
+  mainstate %>%
+  ggplot( aes(x=payment_value)) +
+  geom_histogram(aes(y = (..count..)/sum(..count..)),
+                 binwidth=50,position="dodge")+ #觀看其各區間消費金額比率
+  facet_grid(~customer_state )+ #依照不同州來劃分
+  scale_x_continuous(breaks=seq(0,1000,300),limits =c(0,1000))+ #金額由1~1000,每300為一區間
+  scale_y_continuous(labels = percent)+ #y軸以比率顯示
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "Orders_value",y = "Amount/Total_Amount", title = "Distribution of consumption")+
+  theme_excel() + 
+  theme_economist()+ 
+  theme_economist_white()+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+```
+
+# 商品
+### 熱門商品:
+```
+以售出數量2000以上計算(前18名)分别為寢具用品、健康保養、運動休閒用品、家具及裝飾品、電腦配件、家居用品、手錶禮物、電話、園藝工具、汽車、玩具、coolstuff?、香水、嬰兒用品、電器用品、文具、時尚包包配件、寵物用品
+```
+```{r}
+  legend_theme<-theme( #調整圖例大小及顏色
+  legend.background=element_rect(
+    colour=NA#图例边框颜色
+    ),#图例背景填充色
+  legend.margin=unit(.1,"inches"),#图例与图片区边缘的距离
+  legend.key=element_rect(fill="yellow"),
+  legend.key.size=unit(.5,"inches"),#图例分类符号的大小
+  legend.key.height=unit(.2,"inches"),#图例分类符号高度
+  legend.key.width=unit(.2,"inches"),#图例符号的宽度
+  legend.text=element_text(colour="red",size=3),#图例分类标签设置
+  legend.text.align=1,#0左，1右，0.5居中， 图例分类标签的对齐方式
+  legend.title=element_text(colour="blue",size=3),#图例标题设置
+  legend.title.align=1,#图例标题对齐方式
+  legend.position=c("right"),#"none","left","right","bottom","top",or 
+  # two-element numeric vector,(0,0)-(1,1)
+  legend.direction="vertical",#"vertical" 图例排列方向
+  legend.justification=c("center"),#"center" or two-element numeric vector
+  legend.box="vertical",#"horizontal",对图例的排列方式
+  legend.box.just="top"#多图例的居中方式+
+  
+ 
+)
+  
+
+df$product_category_name_english %>% table %>%  sort %>% #依照商品類別排序 
+  as.data.frame %>% 
+  filter(Freq>2000) %>% #選出消費次數超過2000次的商品類別
+  ggplot(aes(x=.,y=Freq))+
+  geom_bar(stat="identity")+
+  labs(x = "Product_Category",y = "Sells_Amount",title = "TOP Product_Ranking")+
+   theme(plot.title = element_text(hjust = 0.5)) + 
+  theme_excel() + 
+  theme_economist()+ 
+  theme_economist_white()+
+  theme(axis.text.x = element_text(angle = 90))
+# 銷售總金額TOP5商品
+ top5= df %>% select(product_category_name_english,customer_state,price,freight_value) %>% 
+   mutate(total_value=price+freight_value) %>% group_by(product_category_name_english) %>%
+   summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>%
+   arrange(sum_value)%>% as.data.frame %>% tail #挑選出銷售金額(商品價格+運費)TOP5的商品類別
+ 
+ ggplot(top5,aes(x=product_category_name_english),position="dodge") + #依照個商品類別畫圖
+  geom_bar(aes(y = sum_value,fill=product_category_name_english),
+           stat="identity",position="dodge")+ #不同類別給予不同顏色
+  labs(x = "Product_Category",y = "Total_Sales", title = "TOP5_Goods")+
+  scale_x_discrete(breaks=c("bed_bath_table","computers_accessories", "furniture_decor", "health_beauty","sports_leisure","watches_gifts"), 
+  labels=c("寢具", "電腦配件", "家具","健康","運動","手錶"))+ #將商品名稱由英文改成中文(美觀) 
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + 
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+  size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))+axis_theme_2
+ 
+  mainstate = df %>% 
+  filter(customer_state == "SP" | customer_state == "RJ" | customer_state == "MG"| customer_state == "PR"| customer_state == "RS")
+  top5goods_mainstate= mainstate %>% 
+    filter(product_category_name_english=="health_beauty"|
+             product_category_name_english=="watches_gifts"|
+             product_category_name_english=="bed_bath_table" | 
+             product_category_name_english=="sports_leisure"|
+             product_category_name_english=="computers_accessories") %>% #選出銷售金額top5的商品類別
+    mutate(total_value= price + freight_value) #總金額=商品單價+運費
+
+# 銷售總金額TOP5商品在大都會的銷售分布差異  
+  ggplot(top5goods_mainstate,aes(x=factor(customer_state)),position="dodge") + #x軸為州
+  geom_bar(aes(y = total_value,fill=customer_state),stat="identity",position="dodge")+ #y軸為總銷售金額
+  facet_grid(~product_category_name_english)+ #依照商品類別分成5類
+  labs(x = "Customer_State",y = "Total_Sales", title = "Distribution of consumption(region)")+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+  
+ 
+
+```
+### 地區經緯度與賣家買家關係
+```{r}
+geolocation$geolocation_lat = round(geolocation$geolocation_lat,3) #四捨五入至小數點第三位
+geolocation$geolocation_lng = round(geolocation$geolocation_lng,3)
+
+selllocation = geolocation %>% group_by(geolocation_city) %>% summarise(selllat = max(geolocation_lat),selllng=max(geolocation_lng))
+custlocation = geolocation %>% group_by(geolocation_city) %>% summarise(custlat = max(geolocation_lat),custlng=max(geolocation_lng))
+
+
+MergedData<-merge(item,seller,by.x="seller_id",by.y="seller_id")
+CustOrd<-merge(order,customer,by.x="customer_id",by.y="customer_id")
+custsellord<-merge(CustOrd,MergedData,by="order_id")
+custsellordprod<-merge(custsellord,product,by="product_id")
+complete<-merge(custsellordprod,payment,by="order_id")
+complete1<-merge(complete,selllocation,by.x="seller_city",by.y="geolocation_city")
+complete2<-merge(complete1,custlocation,by.x="customer_city",by.y="geolocation_city")
+complete3<-merge(complete2,name,by="product_category_name")
+
+dist_list = list()
+
+for (i in 1:nrow(complete2)) {
+    
+dist_list[[i]] <- gdist(lon.1 = complete2$selllng[i], 
+                              lat.1 = complete2$selllat[i], 
+                              lon.2 = complete2$custlng[i], 
+                              lat.2 = complete2$custlat[i], 
+                              units="miles")
+
+}
+head(dist_list)
+
+complete2$distbtwn<-as.integer(dist_list)
+Brazil<-map_data("world")%>%filter(region=="Brazil")
+# Removing some outliers
+#Brazils most Northern spot is at 5 deg 16′ 27.8″ N latitude.;
+geolocation = geolocation[geolocation$geolocation_lat <= 5.27438888,]
+#it’s most Western spot is at 73 deg, 58′ 58.19″W Long.
+geolocation = geolocation[geolocation$geolocation_lng >= -73.98283055,]
+#It’s most southern spot is at 33 deg, 45′ 04.21″ S Latitude.
+geolocation = geolocation[geolocation$geolocation_lat >= -33.75116944,]
+#It’s most Eastern spot is 34 deg, 47′ 35.33″ W Long.
+geolocation = geolocation[geolocation$geolocation_lng <=  -34.79314722,]
+
+glimpse(geolocation)
+complete2 = complete2[complete2$selllat <= 5.27438888,]
+complete2 = complete2[complete2$custlat <= 5.27438888,]
+ggplot() +
+  geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="black")+
+  geom_point(data= complete2,aes(x=selllng,y=selllat,color=seller_state),size=0.2)+
+  labs(x = "Logitude",y = "Latitude", title = "Distribution of consumption(Sellers)")+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+
+ggsave("geo3.png", plot = last_plot())
+ggplot() +
+  geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="black")+
+  geom_point(data= complete2,aes(x=custlng,y=custlat,color=customer_state),size=0.2)+
+  
+  labs(x = "Logitude",y = "Latitude", title = "Distribution of consumption(Consumers)")+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+ggsave("geo4.png", plot = last_plot())
+ggplot() +
+  geom_bar(data= complete3,aes(product_category_name_english,fill=seller_state),width=1)+ coord_flip()
+
+```
+
