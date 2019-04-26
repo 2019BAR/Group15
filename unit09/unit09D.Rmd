@@ -1,0 +1,163 @@
+---
+title: UNIT09D 案例：航空公司的市場區隔
+author: "第 15 組"
+date: "`r Sys.time()`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: flatly
+    css: style.css
+---
+
+組員：`B044030015 許效軒`  `B046060036 王文弘`  `B054012011 黃冠綾`  `B046060027 姚詠馨`  `B046060035 張文瑜`  `M074020024 楊長舜`
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=F}
+# 這些程式碼設定網頁的格式，並安裝、載入一些基本的套件，請大家不要去改動<br>
+rm(list=ls(all=T))
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_knit$set(global.par = TRUE)
+par(cex=0.8)
+options(scipen=20, digits=5, width=80)
+if(!require(pacman)) install.packages("pacman")
+```
+<br>
+
+<p class="wwl">
+<span style="font-size:24px">`r "\U1F4A1"` 學習重點：</span><br>
+&emsp; ■ 集群分析的基本觀念<br>
+&emsp; ■ 距離矩陣：Distance Matrix<br>
+&emsp; ■ 層級式集群分析：Hierarchical Cluster Analysis<br>
+&emsp; ■ 樹狀圖(Dendrogram)的判讀<br>
+&emsp; ■ 依據樹狀圖決定要分多少群<br>
+&emsp; ■ 以群組平均值檢視各族群的屬性<br>
+</p class="wwl">
+
+<hr>
+
+```{r results='hide', message=FALSE, warning=FALSE}
+pacman::p_load(dplyr, ggplot2)
+```
+<br>
+
+### 【A】航空公司顧客資料集
+
+```{r}
+A = read.csv('data/AirlinesCluster.csv')
+summary(A)
+```
+
++ Balance: 可用里程數
++ QualMiles: 可用高等里程數
++ BonusMiles: 過去12個月非飛行里程數
++ BonusTrans: 過去12個月非飛行交易次數
++ FlightMiles: 過去12個月飛行里程數
++ FlightTrans: 過去12個月飛行交易次數
++ DaysSinceEnroll: 會員年資 (天)
+
+
+<br><br>
+
+### 【B】資料常態化
+
+<span style="font-size:24px">`r "\U1F5FF"`</span>
+為甚麼要做資料常態化？<br>
+```{r}
+colMeans(A) %>% sort
+```
+
+```{r}
+AN = scale(A) %>% data.frame #scale是標準化
+```
+
+```{r}
+sapply(AN, mean)
+```
+
+```{r}
+sapply(AN, sd)
+```
+
+<br><br>
+
+### 【C】層級式集群分析 Hirarchical Clustering  
+
+1.距離矩陣
+```{r}
+d = dist(AN, method="euclidean") #轉成一個距離矩陣 #用"euclidean"歐基里德法算距離
+```
+
+2.層級式集群分析
+```{r}
+hc = hclust(d, method='ward.D')
+```
+
+3.畫出樹狀圖
+```{r}
+plot(hc)
+```
+<br>
+<span style="font-size:24px">`r "\U1F5FF"`</span>
+如何從樹狀圖決定群數？<br>
+
+4.分割群組 
+```{r}
+kg = cutree(hc, k=5)
+table(kg)
+```
+
+<br><br>
+
+### 【D】觀察群組特性
+
+```{r}
+sapply(split(A,kg), colMeans) %>% round(2) 
+#split()用kg分割A
+```
+
+```{r}
+par(cex=0.8)
+split(AN,kg) %>% sapply(colMeans) %>% barplot(beside=T,col=rainbow(7))
+legend('topright',legend=colnames(A),fill=rainbow(7))
+```
+
+<br><br>
+
+<p class="qiz">
+<span style="font-size:24px">`r "\U1F5FF"` 討論問題：</span><br>
+&emsp; ■ 請你們為這五個族群各起一個名稱<br>
+&emsp; ■ 請你們為這五個族群各設計一個行銷策略<br>
+&emsp; ■ 統計上最好的分群也是實務上最好的分群嗎<br>
+&emsp; ■ 除了考慮群間和群間距離之外，實務上的分群通常還需要考慮那些因數？<br>
+</p class="qiz">
+```
+1. 
+第一組：沉睡老顧客
+第二組：高價值主要顧客
+第三組：一般的連動型顧客
+第四組：低客單價的小資型顧客
+第五組：非目標客戶群
+
+2.
+第一組：利用專屬的舊客戶優惠，如舊會員福利日、生日優惠與創新服務來用關係和互動吸引舊客戶再次消費。
+第二組：飛行里程數極高，遠高於非飛行里程數，代表他們多使用航空資源來移動，代表其消費潛力和能力是高的，提供黃金會員方案使其獲得尊榮待遇，並使其他客群心動。
+第三組：年資長，喜歡消費來累積里程數，但無飛行需求，可藉由宣導廣告來提倡使用里程數，喚醒顧客將大量未使用的里程數換成機票，推行里程兌換機票優惠，讓客戶可以換更多機票來提升其意願。
+第四組：用第二件優惠促使其提升非飛行交易的客單價，同時推出對於小資族群的機票優惠，例如紅眼班機優惠、多航點聯合促銷，讓他們不斷累積非飛行里程數使其成為一般連動型顧客。
+第五組：因為是非目標客戶，故為了節省行銷成本，可利用電子信等較便宜的廣告定期刺激客戶，將新資訊傳遞給他們，但不將其作為主要推廣對象。
+
+3.否，統計上的分群未必是最好的分群，統計上分群只是按照資料的呈現狀態來做區分，當使用不同的分群因數，就會呈現不同的結果，依照不同情形來選擇合適的分群方式，分群數目也會對於行銷策略安排難易有不同的影響，而容易決策的分群方式才是最好的分群方式。
+
+4. 看目標是什麼去選擇需要的變數，例如年齡、旅遊頻率、單次消費金額(幫其他人訂票)等等，但是最重要的還是看老闆最終決策，因為不可能在會議上教他統計學。
+
+```
+
+
+
+<br><br><br><hr>
+
+
+
+
+
+
+
+
