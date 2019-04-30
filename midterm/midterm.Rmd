@@ -1,0 +1,1328 @@
+---
+title: "olist－2015年成立的交易平台"
+author: "第 15 組"
+output: 
+  html_document:
+    theme: flatly
+    css: style.css
+---
+
+組員：`B044030015 許效軒`  `B046060036 王文弘`  `B054012011 黃冠綾`  `B046060027 姚詠馨`  `B046060035 張文瑜`  `M074020024 楊長舜`
+
+```{r global_options, include = F}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+```{r include = F}
+if(!require(pacman)) install.packages("pacman")
+pacman::p_load(dplyr, d3heatmap, wordcloud2, ggthemes, scales, plotly, dplyr, ggplot2, data.table, maps, tidytext, tidyr, stringr, stringi, leaflet, tidytext, tidyr, stringr, stringi, lubridate, Imap, gcookbook, grid)
+load("data2.rda")
+load("data1.RData")
+# read data
+# order = fread("olist_orders_dataset.csv") # 訂單與運送狀態
+# review = fread("olist_order_reviews_dataset11.csv", encoding = "UTF-8") 
+# 商品滿意度調查
+# payment = fread("olist_order_payments_dataset.csv") # 付款方式
+# item = fread("olist_order_items_dataset.csv") # 訂單價值
+# customer = fread("olist_customers_dataset.csv") # 客戶資料
+# product = fread("olist_products_dataset.csv") # 產品資訊
+# seller = fread("olist_sellers_dataset.csv") # 賣家資訊
+# geolocation = fread("olist_geolocation_dataset.csv") # 巴西郵遞區號與地理位置
+# name = fread("product_category_name_translation.csv") # 英文名
+```
+
+## 目錄
++  一、	電商平台的成長狀態    
+  1.訂單數量概覽  
+  2.細覽  
+  3.消費金額趨勢(不含運費)   
++  二、	訂單主要項目與內容 
+  1.每張訂單中，產品購買數量  
+  2.熱門商品  
+  3.單筆消費商品金額（不含運費）  
+  4.單筆消費總金額（含運費）  
++  三、	當前客群分析  
+  1.所在地區  
+  2.偏好消費時間  
+  3.忠誠度  
+  4.主要支付方式  
++  四、	評價分析  
+  1.評價分數  
+  2.評價分數趨勢  
+  3.文字評論內容  
+  4.計算物流跟評分的關係  
+  5.銷售量與評分的關係
++  五、 客戶分析  
+  1.各地區訂單數:主要訂單地區  
+  2.各地區的銷售數量排行  
+  3.各地區銷售金額排行  
+  4.最主要地區人們單筆消費金額  
++  六、 商品分析  
+  1.熱門商品  
+  2.銷售總金額TOP5商品  
+  3.地區經緯度與賣家買家關係  
++  七、 時序分析  
+  1.各個類別購買次數跟購買總金額  
+  2.季成長趨勢  
+  3.特定類別成長趨勢  
++  附錄
+
+## 一、	 電商平台的成長狀態：  
+總結：數量跟金額上整體有逐漸上升的狀態，於2017年大幅成長，2018平緩化。除了因剛成立，處成長期而有上升的狀態，另外此平台也會因為特別活動而有突出的訂單數（e.g. 2017/11/24(六) 數量飆高,因為11/23是黑色星期五、2018五月初數量上升可能是因母親節節日）  
+
+### 1.	訂單數量概覽： 
+
+```{r}
+# 篩掉同一個訂單
+o=df[!duplicated(df$order_id), ] 
+# table(df$order_purchase_timestamp) %>% sort # 以月分劃分是最洽當的
+ts=as.POSIXct(o$order_purchase_timestamp, format="%Y-%m-%d %H:%M:%S")
+par(cex=0.8)
+hist(ts,"month",las=2,freq=T,xlab="",main ="各月份訂單數",col ="#FF7744")
+```
+
+### 2.	細覽：
+```{r}
+summary(o$order_id) # 總共97256筆
+# 細分
+o$date= as.Date(o$order_purchase_timestamp,format="%Y-%m-%d") 
+lim <- as.Date(c("2017-01-01","2018-09-01"))
+qplot(data=o,
+      x=date,
+      geom = "bar",fill="")+
+  # fill = customer_city) + # 依地區分 
+  labs(x = "日期",y = "數量") + 
+  scale_x_date(date_breaks="months",limits = lim) + 
+  ggtitle("細分訂單數")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')+
+  theme(axis.text.x = element_text(angle = -60))
+```
+
+### 3.	消費金額趨勢(不含運費) ：
+```{r}
+# 篩掉「訂單編號且訂單商品數一樣」的，避免同一商品因付款方式不同重複計算；最後再加總
+cash = df %>% select(order_id,order_item_id,price,order_purchase_timestamp) %>% as.data.frame
+cash1 =cash %>%
+  group_by(order_id,order_item_id) %>%
+  filter(row_number() == 1) %>%
+  ungroup()
+cash2 = aggregate(price ~ order_id, cash1, sum) 
+cash2  =merge(cash2 ,cash1, by =c( "order_id"), all.x = TRUE)
+cash2$date= as.Date(cash2$order_purchase_timestamp,format="%Y-%m-%d")
+setDT(cash2)[, Month_Yr := format(as.Date(order_purchase_timestamp), "%Y-%m") ]
+cash3 = aggregate(price.x ~ Month_Yr, cash2, sum)
+
+# 視覺化
+ggplot(cash3, aes(x = Month_Yr, y = price.x)) + 
+  geom_point(color = '#FF7744') +
+  scale_y_continuous(labels = comma)+ 
+  #geom_text_repel(aes(label=price.x)) +
+  labs(x = "年月份",y = "銷售金額")+
+  ggtitle("總銷售金額趨勢")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')+
+  theme(axis.text.x = element_text(angle = -60))
+```
+
+
+
+
+
+## 二、	訂單主要項目與內容：
+總結：每次購買商品數量只買一項，客單價低，但是有許多離群值，因此可以依每個客戶潛力來做行銷，另外從其熱門商品來看，其潛力產品為健康保養（持續上升），夕陽產品則是3c產品［這邊可能要參考冠綾做的寫］。
+
+### 1.	每張訂單中，產品購買數量：  
+此資料中最高是一個訂單中購買了21個商品,但大多仍是購買少量商品為主(90%的訂單都只單純購買一樣商品)。
+```{r}
+pnumber = df %>% select(order_id,order_item_id) %>% as.data.frame
+pnumber1 =pnumber %>%
+    group_by(order_id) %>%
+    arrange(order_id,desc(order_item_id)) %>%
+    filter(row_number() == 1) %>%
+    ungroup()
+pnumber1 %>%
+  ggplot(aes(x=order_item_id,fill=""))+
+  geom_bar(aes(y = ..prop.., stat="count"))+
+  scale_y_continuous(breaks=seq(0,1,0.1),limits =c(0,1))+
+  labs(x = "產品銷售數量",y = "訂單數量百分比")+
+  ggtitle("單筆訂單中購買的產品數量")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+```
+
+### 2.	熱門商品：在平台上偏好購買的商品  
+以售出數量2000以上計算(前18名)分别為寢具用品、健康保養、運動休閒用品、家具及裝飾品、電腦配件、家居用品、手錶禮物、電話、園藝工具、汽車、玩具、coolstuff、香水、嬰兒用品、電器用品、文具、時尚包包配件、寵物用品；其較熱門的商品，反倒不像其他電商平台（銷售服飾雜貨等）。
+
+```{r}
+df$product_category_name_english %>% table %>%  sort %>% 
+  as.data.frame %>% 
+  filter(Freq>2000) %>%
+  ggplot(aes(x=.,y=Freq,fill=""))+
+  geom_bar(stat="identity")+
+  labs(x = "產品名稱",y = "售出數量")+
+  ggtitle("商品熱門排行")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')+
+  theme(axis.text.x = element_text(angle = -70))
+```
+
+### 3.	單筆消費商品金額（不含運費）：
+以每筆訂單去做的單次購買商品的金額：其客單價（平均數）為137.85元巴西幣（約1097.5台幣），超過50%的人單筆花費（不含運費）少於100巴西幣（約800台幣），其實不高；但因為是購物平台，有各種不同產品，所以在整體價格上也會有很大的離群值（中位數86.8元巴西幣，約700元台幣），因此若在將來要實施行銷方案，可能必須先以各客戶的消費能力來作不同的營銷。  
+```{r}
+# 篩掉「訂單編號且訂單商品數一樣」的，避免同一商品因付款方式不同重複計算；最後再加總
+price = df %>% select(order_id,order_item_id,price) %>% as.data.frame
+price1 =price %>%
+  group_by(order_id,order_item_id) %>%
+  filter(row_number() == 1) %>%
+  ungroup()
+price2 = aggregate(price ~ order_id, price1, sum) %>% as.data.frame
+# 直方圖
+ggplot(price2, aes(x=price,fill="")) +
+  geom_histogram(aes(y = (..count..)/sum(..count..)),binwidth=50)+
+  scale_x_continuous(breaks=seq(0,2000,100),limits =c(0,2000))+
+  scale_y_continuous(labels = percent)+
+  labs(x = "商品消費金額(巴西幣)",y = "數量/總數量")+
+  ggtitle("單筆消費商品金額(不含運費)")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')+
+  theme(axis.text.x = element_text(angle = -70))
+
+# 盒狀圖
+ggplot(price2, aes(x =1, y = price,fill="")) +
+  geom_boxplot( aes( y = price),binwidth=50)+
+  scale_y_continuous(breaks=seq(0,1000,100),limits =c(0,1000))+
+  labs(x = "整個平台的訂單",y = "總消費金額(不含運費)")+
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+
+mean(price2$price) # 平均數 137.85
+median(price2$price) # 中位數 86.8
+
+```
+
+### 4.	單筆消費總金額（含運費）
+其含運費後平均提升至160.8元巴西幣（約1290台幣），中位數提升至105.28元（約850台幣）
+```{r}
+# 會因為買的商品數量，重複計算到總金額;如果只篩訂單，又會把不同付款方式的各個金額篩掉
+# 所以我們刪掉「訂單且付款方式一樣」的，並合併不同付款方式的各個金額變成各訂單總金額。
+p =df %>%
+  group_by(order_id, payment_sequential) %>%
+  filter(row_number() == 1) %>%
+  ungroup()
+pricecount = p %>% select(order_id,payment_value) %>% as.data.frame
+pricecount1 = aggregate(payment_value ~ order_id, pricecount, sum) %>% as.data.frame
+# 直方圖
+ggplot(pricecount1, aes(x=payment_value,fill="")) +
+  geom_histogram(aes(y = (..count..)/sum(..count..)),binwidth=50)+
+  scale_x_continuous(breaks=seq(0,2000,100),limits =c(0,2000))+
+  scale_y_continuous(labels = percent)+
+  labs(x = "訂單總金額(巴西幣)",y = "數量/總數量")+
+  ggtitle("單筆消費總金額(含運費)")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')+
+  theme(axis.text.x = element_text(angle = -70))
+
+# 盒狀圖
+ggplot(pricecount1, aes(x =1, y = payment_value,fill="")) +
+  geom_boxplot( aes( y = payment_value),binwidth=50, outlier.alpha = 0.01)+
+  scale_y_continuous(breaks=seq(0,1000,100),limits =c(0,1000))+
+  labs(x = "整個平台的訂單",y = "總消費金額(含運費)")+
+  ggtitle("單筆消費總金額")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+
+mean(pricecount1$payment_value) # 平均數 160.801
+median(pricecount1$payment_value) # 中位數 105.28
+```
+
+## 三、	當前客群分析：
+總結：此平台吸引的消費族群，多位於聖保羅州等巴西東南側地帶，偏好於平日白天活動時間(10~16點)購物，並習慣使用信用卡支付，是較為信任網路資安，且經濟能力還算穩定者；從顧客忠誠度來看，可以感受到這些消費者仍在嘗鮮、試水溫的階段。  
+
+### 1.	所在地區：依照訂單去看這個平台的消費者主要居住地
+前6名為SP,RJ,MG,RS,PR,SC(聚集在巴西東南方)；聖保羅州特別多
+
+```{r}
+t= table(o$customer_state) %>% sort %>% as.data.frame
+
+t %>%
+  ggplot(aes(x=Var1,y=Freq,fill=""))+
+  geom_bar(stat="identity")+
+  labs(x = "地區",y = "消費者數量")+
+  ggtitle("消費者所在地區")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+```
+
+### 2.	偏好消費時間： 
+購物時間主要在周一到周五的10至16點，還有周一、二的20至22點，但主要為上班時間或上課時段；假日反而沒人網購(除了周日晚上)
+```{r}
+
+table(format(ts,"%u"), format(ts,"%H")) %>% 
+  as.data.frame.matrix %>% 
+  d3heatmap(F,F,col=colorRamp(c('seagreen','lightyellow','red')))
+
+```
+
+
+### 3.	忠誠度：在平台上的消費次數 
+忠誠度低，多數顧客只買一次，估計有可能是此平台才成立不久，正在擴展客源的階段；並且可能是因商場優惠(黑色星期五)湧入的客源。
+```{r}
+### 篩掉同一次的購買,以免重覆計算
+as.data.frame(table(o$customer_id)) %>%
+  ggplot(aes(x=Freq,fill=""))+
+  geom_histogram(aes(y = (..count..)/sum(..count..)),binwidth=1)+
+  scale_x_continuous(breaks=seq(0,10,1),limits =c(0,5))+
+  scale_y_continuous(labels = percent)+
+  labs(x = "購買次數",y = "客戶數百分比")+
+  ggtitle("每位顧客消費次數")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+```
+
+
+
+### 4.	主要支付方式
+相較於流行於巴西本地的現金支付方法boleto，這些消費者以使用信用卡付款為大宗，佔了約3/4，可以知道他們對於資訊及個資上的安全是較為信任的，且有能力申辦信用卡，代表其經濟能力是穩定且不錯的。
+
+```{r}
+as.data.frame(table(o$payment_type))%>%
+  ggplot+
+  geom_bar(aes(x=factor(1),
+               y=Freq,
+               fill=Var1),
+           stat = "identity",
+           position = 'fill') +
+  coord_polar("y", start=0)+
+  labs(x = "",y = "")+
+  ggtitle("習慣支付方式")+
+  scale_fill_discrete(name="支付方式",
+                      breaks=c("boleto", "credit_card","debit_card","voucher"),
+                      labels=c("boleto本地現金支付方式", "信用卡","金融卡","禮券，代金券"))+ 
+  scale_y_continuous(labels = percent_format())
+```
+
+
+
+
+
+## 四、	評價分析：從最直接的客戶反應，了解該平台的優劣勢所在  
+總結：我們也發現除了產品是否符合預期，物流的速度也是此消費族群重視的地方。而物流影響評價，評價影響銷量；若能提升物流，以提高評價，並連動提高銷售量，將是此平台極大的機會。  
+
+### 1.	評價分數：  
+平均4.09335分，以五分為最多，然此數據非呈現遞減，一分數量卻高於兩分和三分。
+```{r}
+### 篩掉同一個reviewid
+r=df[!duplicated(df$review_id), ] 
+
+ggplot(r,aes(x=review_score,fill=""))+
+  geom_bar()+
+  labs(x = "評分(/5分)",y = "人數")+
+  ggtitle("評價分數")+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+mean(r$review_score) 
+```
+
+### 2.	評價分數趨勢：  
+可以發現銷售量最高的日子：黑色星期五後給出的評價卻不到母親節檔期過後的高，另外我們也可以發現每一天五分的數量跟其他分數比起來都是最多的。
+
+```{r}
+###各分數時間趨勢
+r$d= as.Date(r$review_answer_timestamp,format="%Y/%m/%d") 
+reviewperiod=as.data.frame(table(r$d,r$review_score)) %>% 
+  as.data.frame
+reviewperiod$tsd=as.Date(reviewperiod$Var1, format="%Y-%m-%d")
+reviewperiod %>%
+  ggplot(aes(x=tsd,y=Freq,color =Var2))+
+  geom_line()+ 
+  labs(x = "日期",y = "數量")+
+  ggtitle("評價分數趨勢")+ 
+  scale_x_date(date_breaks="month",limits = lim) + 
+  scale_color_discrete(name="給分")+ 
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = -60))
+
+```
+
+### 3.	文字評論內容：
+跟在期限內收到商品之間可能有關係  
+produto 產品/ de介係詞 /não不是/ prazo 交貨/ muito 非常/ entrega 交貨/ antes首先/chegou 到達/recebi 收到了/bom 良好 /
+
+
+```{r}
+reviewword = as.data.frame(select(r,review_id,review_score,review_comment_title,review_comment_message)) 
+colnames(reviewword) = c("id","score","title","message")
+reviewword <-  reviewword %>%  # 刪除空行
+  filter(message!=""|!is.na(message)) 
+reviewword1 <- reviewword %>%  # 切割(尚未加入停用字)
+  ungroup() %>%
+  unnest_tokens(word, message) %>%
+  filter(!word %in% stop_words$word)
+
+### 文字雲:
+
+count <- reviewword1 %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  arrange(desc(n))
+count %>% wordcloud2
+count
+
+### 計算詞/句頻
+n5 =reviewword %>% 
+  ungroup() %>%
+  unnest_tokens(figram, message, token = "ngrams", n = 5) %>%
+  separate(figram, c("word1", "word2", "word3", "word4", "word5" ), sep = " ",na.rm = T) %>%
+  count(word1, word2, word3, word4,word5, sort = TRUE)
+head(n5,20)
+# 產品在截止日期前到達
+# 在截止日期前到達
+# 產品在截止日期前交付
+# 我沒有收到產品
+# 產品到貨之前到了
+# 在截止日期前交付
+# 產品未送達
+# 在截止日期前抵達
+# 在截止日期前交付
+
+```
+
+### 4.	計算物流跟評分的關係：
+此平台有約90%的會準時到貨，平均物流抵達時間為12.5天內抵達居多，最長高達210天,最短一天不到，但光靠圖表，我們無法明顯看出兩者之間的關聯；我們使用相關性和回歸檢定，才發現呈現低度負相關，且回歸檢定上也是顯著的（指物流花越久，分數越低；物流越快，分數越高）。
+
+
+```{r}
+# 物流準時時間 
+tspre=as.POSIXct(o$order_estimated_delivery_date, format="%Y-%m-%d %H:%M:%S")
+tsaft=as.POSIXct(o$order_delivered_customer_date, format="%Y-%m-%d %H:%M:%S")
+
+as.data.frame(table(tsaft > tspre))%>%
+  ggplot+
+  geom_bar(aes(x=factor(1),
+               y=Freq,
+               fill=Var1),
+           stat = "identity",
+           position = 'fill') +
+  labs(x = "",y = "")+
+  ggtitle("物流準時程度")+
+  coord_polar("y", start=0)+ 
+  scale_fill_discrete(name="到貨期",
+                      breaks=c("FALSE", "TRUE"),
+                      labels=c("準時期限內", "遲交貨"))+ 
+  theme_economist() + 
+  scale_color_economist()  + 
+  scale_y_continuous(labels = percent_format())
+
+# 關係
+tsr1=as.POSIXct(r$order_purchase_timestamp, format="%Y-%m-%d %H:%M:%S")
+tsr2=as.POSIXct(r$order_delivered_customer_date, format="%Y-%m-%d %H:%M:%S")
+r = mutate(r,spendtime=difftime(tsr2,tsr1, units="day") )  #天數
+# 視覺化
+r %>%
+  ggplot(aes(review_score, spendtime)) +
+  geom_point(mapping = NULL, data = NULL, stat = "identity", position = "identity",color="#FF7744") +
+  labs(x = "評分(/5分)",y = "物流等待(天數)")+
+  ggtitle("物流跟評分")+
+  scale_y_continuous(labels = comma)+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+
+summary(as.numeric(r$spendtime)) 
+# 相關
+cor.test(r$review_score, as.numeric(r$spendtime))
+# 回歸
+model <- lm(formula= review_score ~ spendtime,
+            data=r)
+summary(model)
+```
+
+### 5.	銷售量與評分的關係
+評分五分的數量與銷售量之間呈現中度正相關，且其線性回歸顯著，代表當五分的評分數上升時，銷售量也會跟著提升。
+```{r}
+r$o= as.Date(r$order_purchase_timestamp,format="%Y-%m-%d") 
+ro =as.data.frame(table(r$o))
+reviewperiod1 = reviewperiod %>% filter(Var2 ==5) # 篩出五分 
+ro =merge(ro,reviewperiod1, by = "Var1", x.all = TRUE)
+colnames(ro)=c("時間","sales","分數","評5分數","時間1")
+
+ro %>%
+  ggplot(aes(sales,評5分數)) +
+  geom_point(mapping = NULL, data = NULL, stat = "identity", position = "identity",color="#FF7744",size=1) +
+  labs(x = "5分的評分數",y = "銷售量")+
+  ggtitle("產品銷售量與評分")+
+  scale_y_continuous(labels = comma)+ 
+  theme_economist() + 
+  scale_color_economist()+
+  theme(legend.position='none')
+
+cor.test(ro$sales,  ro$評5分數)
+```
+
+
+
+## 四、 段落總結:  
+
++ 電商平台因剛成立，處成長期而有上升的狀態，也會因為特別活動而有突出的訂單數，因此若能在特別節日中，舉辦相關活動，並且抓住成長期的大量顧客，則可以脫隱而出。
+
++ 訂單中購買商品數量只買一項，且客單價低，但是有許多離群值，因此須依每個客戶潛力（如：將之分為高、低消費族群），做適合的行銷；另外也可依商品在不同地區、時間的熱門程度來做營銷。
+
++	此平台當前吸引的消費族群，多位於聖保羅州等巴西東南側地帶，偏好於平日白天活動時間(10~16點)購物，並習慣使用信用卡支付，是較為信任網路資安，且經濟能力還算穩定者；從顧客忠誠度來看，可以感受到這些消費者仍在嘗鮮、試水溫的階段。
+
++ 從評論文字探索，除了產品是否符合預期，物流的速度也是此消費族群重視的地方。而物流影響評價，評價影響銷量；若能提升物流，以提高評價，並連動提高銷售量，將是此平台極大的機會。
+
+
+### 附錄
+### 1. 計算TF-IDF  
+因為透過單看各分數的文字雲無法看出實際問題，所以使用tf-idf  
+評分為1:insatisfeito不滿/ tento試圖 /parcela一部分 /decepção騙局 /enganosa 誤導/entrar 聯繫,進入/descaso 忽視  
+評分為2:tento試圖/entrar 聯繫,進入/flex靈活性/moist 潮濕/Pneu Maggion aro 某產品名稱 /esquerdo左  
+評分為3:identidade身分/taxas利率/pentes梳子/ tirando服用/apto適合/automotivo汽車/presilhas 緊/  
+評分為4:ótimo 美好/rapida很快/direitinho恰到好處/benefícios好處/baixar降低/Tirando 除此
+評分為5:ótimo 美好/rapida很快/direitinho恰到好處/adorou喜歡/excelentes優點/superou超出預期/parabens恭喜  
+小結:估計低分是因為覺得被騙被誤導,但是聯絡賣家又被忽視；有一些詞是直接跟產品有關，像是2分出現的某輪胎牌子
+```{r}
+### 每區間總共字數
+reviewword2 =reviewword1  %>%
+  count(score, word, sort = TRUE)
+total_words <- reviewword2 %>% 
+  group_by(score) %>% 
+  summarize(total = sum(n))
+
+t_words <- left_join(reviewword2, total_words)
+t_words
+###找出重要的單詞(專有詞)
+t_words <-t_words  %>%
+  bind_tf_idf(word,score, n)
+t_words
+
+### 計算出tf-idf
+t_words %>%
+  select(-total) %>%
+  arrange(desc(tf_idf))
+
+### 結果視覺化
+t_words %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(score) %>% 
+  top_n(7) %>% 
+  ungroup() %>%
+  ggplot(aes(word, tf_idf, fill =score)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~score, ncol = 2, scales = "free") +
+  coord_flip()
+```
+
+
+### 2. 產品簡介與評分的關係  
+小結:極低度相關
+```{r}
+### 產品照片數與評分的關係
+cor(r$review_score,  r$product_photos_qty)
+cor.test(r$review_score,  r$product_photos_qty)
+r %>%
+  ggplot(aes(review_score, product_photos_qty,group=review_score)) +
+  geom_boxplot( width = .5, outlier.alpha = 0.01)+
+  geom_point(mapping = NULL, data = NULL, stat = "identity", position = "identity") +
+  labs(x = "評分(/5分)",y = "產品照片數量")+
+  ggtitle("產品照片數與評分")+
+  scale_y_continuous(labels = comma)
+
+### 產品簡介字數與評分的關係
+cor(r$review_score,  r$product_description_lenght)
+cor.test(r$review_score,  r$product_description_lenght)
+r %>%
+  ggplot(aes(review_score, product_description_lenght,group=review_score)) +
+  geom_boxplot( width = .5, outlier.alpha = 0.01)+
+  geom_point(mapping = NULL, data = NULL, stat = "identity", position = "identity") +
+  labs(x = "評分(/5分)",y = "產品簡介字數")+
+  ggtitle("產品簡介字數與評分")+
+  scale_y_continuous(labels = comma)
+```
+
+
+
+### 3. 運費與評分的關係  
+小結:基本上關聯不大
+```{r}
+cor(r$review_score,  r$freight_value)
+cor.test(r$review_score,  r$freight_value)
+r %>%
+  ggplot(aes(review_score,freight_value)) +
+  geom_point(mapping = NULL, data = NULL, stat = "identity", position = "identity") +
+  labs(x = "評分(/5分)",y = "運費")+
+  ggtitle("運費與評分")+
+  scale_y_continuous(labels = comma)
+```
+
+# 客戶分析
+### 各地區訂單數:主要訂單地區  
+```
+SP聖保羅州 40801 /RJ里約熱內盧 12569 /MG米纳斯吉拉斯 11375 /RS南大河州  /PR巴拉那 /SC聖卡塔琳娜.....
+這些州的特性???
+```
+
+```{r}
+axis_theme<-theme( #用來調整圖形的X,Y軸圖像
+  axis.title=element_text(
+    #family=NULL,
+    face = "bold", #字体("plain", "italic", "bold", "bold.italic")
+    colour = "red", #字体颜色
+    size = 20,#字体大小
+    hjust = .5, #调整轴标题1：纵轴靠上，横轴靠右；0.5居中；0：纵轴靠下，横轴靠左
+    vjust = .5, #1：靠图边框；0靠近轴线；.5居中
+    angle = 0 #为什么只对横轴标题有作用？
+ ),
+  axis.title.x=element_text(colour="blue",vjust=-3),#x轴标题设置，优先级高于axis.title
+  axis.title.y=element_text(colour="orange",vjust=5),#同上
+  axis.text=element_text(colour="red"),#设置坐标轴刻度数字
+  axis.text.x=element_text(colour="blue"),#优先级高于aixis.text
+  axis.text.y=element_text(colour="orange"),#同上
+  axis.ticks=element_line(#坐标轴刻度线的设置
+    colour="red",
+    size=0.05,
+    linetype=1,
+    lineend=1),
+  axis.ticks.x=element_line(colour="blue"),#优先级高于axis.ticks
+  axis.ticks.y=element_line(colour="orange"),#同上
+  axis.ticks.length=unit(.4,"lines"),#设置刻度线的高度
+  axis.ticks.margin=unit(10,"mm"),#设置刻度数字与刻度线的距离
+  axis.line=element_line(#设置轴线
+    colour="red"),
+  axis.line.x=element_line(colour="white"),#设置x轴线，优先于axis.line
+  axis.line.y=element_line(colour="white"))#类似axis.line.
+
+
+o=df[!duplicated(df$order_id), ]  #篩掉同一個訂單
+table(o$customer_state) %>%sort #依據州排序訂單量
+  qplot(data=o,x=customer_state,geom = "bar")+ 
+    labs(x = "Cusotomer_State",y = "Total_amount",title = "Regional Distribution_Orders" )+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+    theme(panel.background = element_rect(size = 2)) +
+    theme(plot.background = element_rect( size = 1, linetype = 4), 
+          plot.title = element_text(colour = "black", face = "bold", 
+    size = 30, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))+axis_theme
+
+
+```
+
+
+### 各地區的銷售數量排行
+```{r}
+df$customer_state %>% table %>%  sort %>% #依據州來排序訂單
+  as.data.frame %>% 
+  ggplot(aes(x=.,y=Freq))+
+  geom_bar(stat="identity")+
+  labs(x = "Cusotomer_State",y = "Total_amount",title = "Regional Ranking_Orders" )+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+```
+### 各地區銷售金額排行
+```{r}
+state_money= select(df, customer_state, price, freight_value) #挑選出州,商品單價及運費
+state_money %>% mutate(total_value=price+freight_value) %>% #總金額=商品單價+商品運費
+  group_by(customer_state)%>% #依照州分類     
+  summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>% #運算總金額以及平均金額 
+  arrange(sum_value)%>% as.data.frame %>% tail %>% #依照總金額進行排序，取出前五名
+  ggplot(aes(x=customer_state,y=sum_value))+ #X軸為州名稱,Y軸為總銷售金額
+  geom_bar(stat="identity")+
+  labs(x = "地區名稱",y = "銷售金額" ,title = "地區排行")+
+  theme_excel() + 
+  theme_economist()+ 
+  theme_economist_white()+
+  theme(axis.text.x = element_text(angle = 90))
+
+axis_theme<-theme(
+  axis.title=element_text(
+    #family=NULL,
+    face = "bold", #字体("plain", "italic", "bold", "bold.italic")
+    colour = "red", #字体颜色
+    size = 15,#字体大小
+    hjust = .5, #调整轴标题1：纵轴靠上，横轴靠右；0.5居中；0：纵轴靠下，横轴靠左
+    vjust = .5, #1：靠图边框；0靠近轴线；.5居中
+    angle = 0 #为什么只对横轴标题有作用？
+ ),
+  axis.title.x=element_text(colour="blue"),#x轴标题设置，优先级高于axis.title
+  axis.title.y=element_text(colour="orange",vjust=5),#同上
+  axis.text=element_text(colour="red"),#设置坐标轴刻度数字
+  axis.text.x=element_text(colour="blue"),#优先级高于aixis.text
+  axis.text.y=element_text(colour="orange"),#同上
+  axis.ticks=element_line(#坐标轴刻度线的设置
+    colour="red",
+    size=.5,
+    linetype=1,
+    lineend=1),
+  axis.ticks.x=element_line(colour="blue"),#优先级高于axis.ticks
+  axis.ticks.y=element_line(colour="orange"),#同上
+  axis.ticks.length=unit(.4,"lines"),#设置刻度线的高度
+  axis.ticks.margin=unit(.4,"cm"),#设置刻度数字与刻度线的距离
+  axis.line=element_line(#设置轴线
+    colour="red"),
+  axis.line.x=element_line(colour="white"),#设置x轴线，优先于axis.line
+  axis.line.y=element_line(colour="white"))#类似axis.line.
+
+state_money %>% mutate(total_value=price+freight_value) %>% #總金額=商品單價+商品運費
+  group_by(customer_state) %>% 
+  summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>%
+  arrange(sum_value)%>% as.data.frame %>% 
+  
+ggplot(aes(x=customer_state,y=sum_value)) + 
+  geom_bar(aes(fill=customer_state),position="stack",stat="identity")+ #不同地區依照不同顏色區分
+  labs(x = "Cusotomer_State",y = "Total Sales amount",title = "Regional Ranking_Total Sales" )+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+ #加上axis_theme調整字型大小
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+
+
+
+state_money %>% mutate(total_value=price+freight_value) %>% 
+  group_by(customer_state) %>%         
+  summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>%
+  arrange(sum_value)%>% as.data.frame %>% tail %>% #依照上一張圖，取出前五名
+  
+ggplot(aes(x=customer_state,y=sum_value)) + 
+  geom_bar(aes(fill=customer_state),position="stack",stat="identity")+ #依照不同地區採不同顏色
+  labs(x = "Cusotomer_State",y = "Total Sales amount",title = "Regional Ranking_Total Sales" )+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+  
+```
+### 各地區運費金額排行
+```{r}
+state_freight= select(df, customer_state, price, freight_value) #與運費有關的數據
+
+state_freight %>% group_by(customer_state) %>% #依照州排序運費
+  summarize(sum_freight=sum(freight_value),mean_freight=mean(freight_value)) %>% #總運費金額及平均運費
+  arrange(mean_freight) %>%  
+  ggplot(aes(x=customer_state,y=mean_freight))+ #x軸為州,y軸為平均運費
+  geom_bar(aes(fill=customer_state),stat="identity",position="stack")+ #不同州不同顏色
+  labs(x = "Cusotomer_State",y = "Shipping amount" ,title = "Regional_Ranking_Mean_Shipping")+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+state_freight= select(df, customer_state, price, freight_value)
+
+state_freight %>% group_by(customer_state) %>%
+  summarize(sum_freight=sum(freight_value),mean_freight=mean(freight_value)) %>%
+  arrange(mean_freight) %>% tail %>% #採平均運費做排序，且只選取前五名
+  ggplot(aes(x=customer_state,y=mean_freight))+
+  geom_bar(aes(fill=customer_state),stat="identity",position="stack")+
+  labs(x = "Cusotomer_State",y = "Shipping amount" ,title = "Regional_TOP5_Mean_Shipping")+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+  
+
+
+
+```
+
+### 最主要地區人們單筆消費金額
+SP,RJ,MG,PR,RS
+```{r warning=F}
+axis_theme_2<-theme( #不同的圖，需要不同的字體大小，比較美觀
+  axis.title=element_text(
+    #family=NULL,
+    face = "bold", #字体("plain", "italic", "bold", "bold.italic")
+    colour = "red", #字体颜色
+    size = 10,#字体大小
+    hjust = .5, #调整轴标题1：纵轴靠上，横轴靠右；0.5居中；0：纵轴靠下，横轴靠左
+    vjust = .5, #1：靠图边框；0靠近轴线；.5居中
+    angle = 0 #为什么只对横轴标题有作用？
+ ),
+  axis.title.x=element_text(colour="blue",vjust=-3,size=15),#x轴标题设置，优先级高于axis.title
+  axis.title.y=element_text(colour="orange",vjust=5,size=15),#同上
+  axis.text=element_text(colour="red"),#设置坐标轴刻度数字
+  axis.text.x=element_text(colour="blue"),#优先级高于aixis.text
+  axis.text.y=element_text(colour="orange"),#同上
+  axis.ticks=element_line(#坐标轴刻度线的设置
+    colour="red",
+    size=.01,
+    linetype=1,
+    lineend=1),
+  axis.ticks.x=element_line(colour="blue"),#优先级高于axis.ticks
+  axis.ticks.y=element_line(colour="orange"),#同上
+  axis.ticks.length=unit(.4,"lines"),#设置刻度线的高度
+  axis.ticks.margin=unit(.4,"cm"),#设置刻度数字与刻度线的距离
+  axis.line=element_line(#设置轴线
+    colour="red"),
+  axis.line.x=element_line(colour="white"),#设置x轴线，优先于axis.line
+  axis.line.y=element_line(colour="white"))#类似axis.line.
+
+mainstate = df %>% #選取總銷額金額top5的五大洲
+  filter(customer_state == "SP" | customer_state == "RJ" | 
+           customer_state == "MG"| customer_state == "PR"| customer_state == "RS")
+
+  mainstate %>%
+  ggplot( aes(x=payment_value)) +
+  geom_histogram(aes(y = (..count..)/sum(..count..)),
+                 binwidth=50,position="dodge")+ #觀看其各區間消費金額比率
+  facet_grid(~customer_state )+ #依照不同州來劃分
+  scale_x_continuous(breaks=seq(0,1000,300),limits =c(0,1000))+ #金額由1~1000,每300為一區間
+  scale_y_continuous(labels = percent)+ #y軸以比率顯示
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "Orders_value",y = "Amount/Total_Amount", title = "Distribution of consumption")+
+  theme_excel() + 
+  theme_economist()+ 
+  theme_economist_white()+
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+```
+
+# 商品
+### 熱門商品:
+```
+以售出數量2000以上計算(前18名)分别為寢具用品、健康保養、運動休閒用品、家具及裝飾品、電腦配件、家居用品、手錶禮物、電話、園藝工具、汽車、玩具、coolstuff?、香水、嬰兒用品、電器用品、文具、時尚包包配件、寵物用品
+```
+```{r}
+  legend_theme<-theme( # 調整圖例大小及顏色
+  legend.background=element_rect(
+    colour=NA# 图例边框颜色
+    ),# 图例背景填充色
+  legend.margin=unit(.1,"inches"),# 图例与图片区边缘的距离
+  legend.key=element_rect(fill="yellow"),
+  legend.key.size=unit(.5,"inches"),# 图例分类符号的大小
+  legend.key.height=unit(.2,"inches"),# 图例分类符号高度
+  legend.key.width=unit(.2,"inches"),# 图例符号的宽度
+  legend.text=element_text(colour="red",size=3),# 图例分类标签设置
+  legend.text.align=1,# 0左，1右，0.5居中， 图例分类标签的对齐方式
+  legend.title=element_text(colour="blue",size=3),# 图例标题设置
+  legend.title.align=1,#图例标题对齐方式
+  legend.position=c("right"),#"none","left","right","bottom","top",or 
+  # two-element numeric vector,(0,0)-(1,1)
+  legend.direction="vertical",#"vertical" 图例排列方向
+  legend.justification=c("center"),#"center" or two-element numeric vector
+  legend.box="vertical",#"horizontal",对图例的排列方式
+  legend.box.just="top"#多图例的居中方式+
+  
+ 
+)
+  
+
+df$product_category_name_english %>% table %>%  sort %>% #依照商品類別排序 
+  as.data.frame %>% 
+  filter(Freq>2000) %>% #選出消費次數超過2000次的商品類別
+  ggplot(aes(x=.,y=Freq))+
+  geom_bar(stat="identity")+
+  labs(x = "Product_Category",y = "Sells_Amount",title = "TOP Product_Ranking")+
+   theme(plot.title = element_text(hjust = 0.5)) + 
+  theme_excel() + 
+  theme_economist()+ 
+  theme_economist_white()+
+  theme(axis.text.x = element_text(angle = 90))
+# 銷售總金額TOP5商品
+ top5= df %>% select(product_category_name_english,customer_state,price,freight_value) %>% 
+   mutate(total_value=price+freight_value) %>% group_by(product_category_name_english) %>%
+   summarize(sum_value=sum(total_value),mean_value=mean(total_value)) %>%
+   arrange(sum_value)%>% as.data.frame %>% tail 
+ # 挑選出銷售金額(商品價格+運費)TOP5的商品類別
+ 
+ ggplot(top5,aes(x=product_category_name_english),position="dodge") +
+   # 依照個商品類別畫圖
+  geom_bar(aes(y = sum_value,fill=product_category_name_english),
+           stat="identity",position="dodge")+ #不同類別給予不同顏色
+  labs(x = "Product_Category",y = "Total_Sales", title = "TOP5_Goods")+
+  scale_x_discrete(breaks=c("bed_bath_table","computers_accessories", "furniture_decor", "health_beauty","sports_leisure","watches_gifts"), 
+  labels=c("寢具", "電腦配件", "家具","健康","運動","手錶"))+ 
+   # 將商品名稱由英文改成中文(美觀) 
+  theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + 
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+  size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))+axis_theme_2
+ 
+  mainstate = df %>% 
+  filter(customer_state == "SP" | customer_state == "RJ" | customer_state == "MG"| customer_state == "PR"| customer_state == "RS")
+  top5goods_mainstate= mainstate %>% 
+    filter(product_category_name_english=="health_beauty"|
+             product_category_name_english=="watches_gifts"|
+             product_category_name_english=="bed_bath_table" | 
+             product_category_name_english=="sports_leisure"|
+             product_category_name_english=="computers_accessories") %>% #選出銷售金額top5的商品類別
+    mutate(total_value= price + freight_value) #總金額=商品單價+運費
+
+# 銷售總金額TOP5商品在大都會的銷售分布差異  
+  ggplot(top5goods_mainstate,aes(x=factor(customer_state)),position="dodge") + #x軸為州
+  geom_bar(aes(y = total_value,fill=customer_state),stat="identity",position="dodge")+ #y軸為總銷售金額
+  facet_grid(~product_category_name_english)+ #依照商品類別分成5類
+  labs(x = "Customer_State",y = "Total_Sales", title = "Distribution of consumption(region)")+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+  
+ 
+
+```
+### 地區經緯度與賣家買家關係
+```{r}
+geolocation$geolocation_lat = round(geolocation$geolocation_lat,3) #四捨五入至小數點第三位
+geolocation$geolocation_lng = round(geolocation$geolocation_lng,3)
+
+selllocation = geolocation %>% group_by(geolocation_city) %>% summarise(selllat = max(geolocation_lat),selllng=max(geolocation_lng))
+custlocation = geolocation %>% group_by(geolocation_city) %>% summarise(custlat = max(geolocation_lat),custlng=max(geolocation_lng))
+
+
+MergedData<-merge(item,seller,by.x="seller_id",by.y="seller_id")
+CustOrd<-merge(order,customer,by.x="customer_id",by.y="customer_id")
+custsellord<-merge(CustOrd,MergedData,by="order_id")
+custsellordprod<-merge(custsellord,product,by="product_id")
+complete<-merge(custsellordprod,payment,by="order_id")
+complete1<-merge(complete,selllocation,by.x="seller_city",by.y="geolocation_city")
+complete2<-merge(complete1,custlocation,by.x="customer_city",by.y="geolocation_city")
+complete3<-merge(complete2,name,by="product_category_name")
+
+dist_list = list()
+
+for (i in 1:nrow(complete2)) {
+    
+dist_list[[i]] <- gdist(lon.1 = complete2$selllng[i], 
+                              lat.1 = complete2$selllat[i], 
+                              lon.2 = complete2$custlng[i], 
+                              lat.2 = complete2$custlat[i], 
+                              units="miles")
+
+}
+head(dist_list)
+
+complete2$distbtwn<-as.integer(dist_list)
+Brazil<-map_data("world")%>%filter(region=="Brazil")
+# Removing some outliers
+#Brazils most Northern spot is at 5 deg 16′ 27.8″ N latitude.;
+geolocation = geolocation[geolocation$geolocation_lat <= 5.27438888,]
+#it’s most Western spot is at 73 deg, 58′ 58.19″W Long.
+geolocation = geolocation[geolocation$geolocation_lng >= -73.98283055,]
+#It’s most southern spot is at 33 deg, 45′ 04.21″ S Latitude.
+geolocation = geolocation[geolocation$geolocation_lat >= -33.75116944,]
+#It’s most Eastern spot is 34 deg, 47′ 35.33″ W Long.
+geolocation = geolocation[geolocation$geolocation_lng <=  -34.79314722,]
+
+glimpse(geolocation)
+complete2 = complete2[complete2$selllat <= 5.27438888,]
+complete2 = complete2[complete2$custlat <= 5.27438888,]
+ggplot() +
+  geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="black")+
+  geom_point(data= complete2,aes(x=selllng,y=selllat,color=seller_state),size=0.2)+
+  labs(x = "Logitude",y = "Latitude", title = "Distribution of consumption(Sellers)")+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+ggplot() +
+  geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="black")+
+  geom_point(data= complete2,aes(x=custlng,y=custlat,color=customer_state),size=0.2)+
+  
+  labs(x = "Logitude",y = "Latitude", title = "Distribution of consumption(Consumers)")+
+    theme(plot.title = element_text(hjust = 0.5)) +  #使標題置中
+  theme(panel.background = element_rect(size = 2)) + axis_theme_2+
+  theme(plot.background = element_rect( size = 1, linetype = 4), 
+        plot.title = element_text(colour = "black", face = "bold", 
+    size = 15, vjust = 2), plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), "inches"))
+
+ggplot() +
+  geom_bar(data= complete3,aes(product_category_name_english,fill=seller_state),width=1)+ coord_flip()
+
+```
+
+
+#整理資料
+
+```{r}
+#訂單編號VS消費金額、運費以及總付款金額(order_money)
+order_money=select(item,order_id,price,freight_value)
+order_money=
+  order_money%>%
+  mutate(total= price + freight_value)%>%
+  group_by(order_id)
+
+#統整在一起
+H_data = order_money
+order_money = NULL
+```
+
+```{r}
+#訂單編號_購買(order_time)
+order_time = select(order,order_id,order_purchase_timestamp)
+order_time$order_purchase_timestamp=
+  as.POSIXct(order_time$order_purchase_timestamp, 
+      format="%Y-%m-%d %H:%M:%S")
+order_time$month=format(order_time$order_purchase_timestamp,format="%Y-%m")
+
+#統整在一起
+H_data = merge(H_data, order_time, by="order_id")
+order_time =NULL
+```
+
+```{r}
+#訂單編號_類別(order_cato)
+tras = select(product, product_id ,product_category_name)
+product_cato = select(item ,order_id ,product_id)
+order_cato = merge( tras, product_cato ,by = "product_id", na.rm=TRUE)
+order_cato = 
+  order_cato%>%
+  merge( name , by="product_category_name", na.rm=TRUE)%>%
+  select(order_id,product_category_name_english)
+
+#統整在一起
+H_data = merge(H_data, order_cato, by="order_id")
+H_data$count = 1
+order_cato =NULL
+tras=NULL
+product_cato=NULL
+
+```
+
+
+
+#####物流時間整合
+```{r}
+#物流時間整合
+ooh = select(order,order_purchase_timestamp,order_approved_at,order_delivered_carrier_date,
+             order_delivered_customer_date,order_estimated_delivery_date)
+ooh$shipping_limit_date = item$shipping_limit_date
+
+ooh$order_approved_at= as.Date(ooh$order_approved_at, format= "%Y-%m-%d %H:%M:%S")
+ooh$order_delivered_customer_date= as.Date(ooh$order_delivered_customer_date, format= "%Y-%m-%d %H:%M:%S")
+ooh$shipping_limit_date= as.Date(ooh$shipping_limit_date, format= "%Y-%m-%d %H:%M:%S")
+ooh$order_estimated_delivery_date= as.Date(ooh$order_estimated_delivery_date, format= "%Y-%m-%d %H:%M:%S")
+ooh$order_purchase_timestamp= as.Date(ooh$order_purchase_timestamp, format= "%Y-%m-%d %H:%M:%S")
+ooh$order_delivered_carrier_date= as.Date(ooh$order_delivered_carrier_date, format= "%Y-%m-%d %H:%M:%S")
+ooh =
+  ooh%>%
+    mutate(
+              check=order_approved_at - order_purchase_timestamp,
+              pack = shipping_limit_date- order_approved_at,
+              true_deli =  order_delivered_customer_date - shipping_limit_date,
+              balance =order_estimated_delivery_date - order_delivered_customer_date
+            )%>%
+    select(check, pack, true_deli, balance)
+ooh$check = as.integer(ooh$check)
+ooh$pack = as.integer(ooh$pack)
+ooh$true_deli = as.integer(ooh$true_deli)
+ooh$balance = as.integer(ooh$balance)
+par(mfrow=c(1,4))
+boxplot(ooh$check )
+boxplot(ooh$pack)
+boxplot(ooh$true_deli)
+boxplot(ooh$balance)
+
+# 購買時間(6-4)	
+# 	Check
+# 付款被審核成功(6-5)
+# 訂單過帳(6-6)
+# 	pack
+# 出貨時間(3-5)
+# 	True_deli
+# 實際交貨時間(6-7)
+#   Balance
+# 預定交貨時間(6-8)
+
+
+
+```
+
+
+#分析
+###各個類別購買次數跟購買總金額
+購買金額最高的前六個分別是：
+  bed_bath_table,health_beauty,computer_accessories,
+  furniture_decor,watches_gifts,sports_leisure
+  
+購買次數最多的前六個分別是：
+  bed_bath_table,furniture_decor,health_beauty,
+  computer_accessories, sports_leisure,horsewares
+  
+```{r}
+money_cato =
+  H_data%>%
+  select(product_category_name_english,total,count)%>%
+  group_by(product_category_name_english) %>% 
+  summarise(total = sum(total),count=sum(count))
+money_cato_t = arrange(money_cato,desc(total))
+money_cato_t =money_cato_t[1:6, ]
+money_cato_c = arrange(money_cato,desc(count))
+money_cato_c =money_cato_c[1:6, ]
+money_cato_t$product_category_name_english
+money_cato_c$product_category_name_english
+
+money_cato_t = NULL
+money_cato_c = NULL
+
+```
+###季成長趨勢
+```{r}
+K = H_data
+K=
+  K%>%
+  group_by(month)%>%
+  summarise(total = sum(total),price = sum(price))
+K$season =1
+K$season[1:3]="16-4"
+K$season[4:6]="17-1"
+K$season[7:9]="17-2"
+K$season[10:12]="17-3"
+K$season[13:15]="17-4"
+K$season[16:18]="18-1"
+K$season[19:21]="18-2"
+K$season[22:24]="18-3"
+
+L = K%>%
+  group_by(season)%>%
+  summarise(total = sum(total),price = sum(price))
+
+qplot(x=month,y=total,data=K,
+      color = rgb(255, 233, 139, maxColorValue = 255))+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(x = "日期",y = "金額",title = "總金額月趨勢圖")+
+  theme_bw()+
+  theme_light()
+
+qplot(x=month, y=price,data=K,
+      color = rgb(93, 202, 253, maxColorValue = 255))+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(x = "日期",y = "金額",title = "商品金額月趨勢圖")+
+  theme_bw()+
+  theme_light()
+
+qplot(season,total,data=L,
+      color = rgb(255, 233, 139, maxColorValue = 255) )+
+  labs(x = "日期",y = "金額",title = "總金額季趨勢圖")+
+  theme_bw()+
+  theme_light()
+
+qplot(season,price, data=L,
+      color = rgb(93, 202, 253, maxColorValue = 255))+
+  labs(x = "日期",y = "金額",title = "消費金額季趨勢圖")+
+  theme_bw()+
+  theme_light()
+
+K=L=O=P=NULL
+```
+
+```{r}
+time_cat_mon  = filter(H_data, 
+        product_category_name_english == "bed_bath_table"| 
+        product_category_name_english == "health_beauty" | 
+        product_category_name_english == "computers_accessories"| 
+        product_category_name_english =="furniture_decor"| 
+        product_category_name_english =="watches_gifts"| 
+        product_category_name_english =="sports_leisure"| 
+        product_category_name_english =="housewares" )
+ggplot()+
+  geom_bar(data = time_cat_mon,
+           aes(x=month,y=total, fill = product_category_name_english),
+           stat = "identity")+
+ theme(axis.text.x = element_text(angle = 90)) + 
+  labs(x = "日期",y = "金額",title = "總金額月趨勢圖")+
+  theme_bw()+
+  theme_light()
+```
+
+```{r}
+K=
+  time_cat_mon%>%
+  group_by(month,product_category_name_english)%>%
+  summarise(total = sum(total),count=sum(count))
+ggplot(data = K)+
+  geom_line(
+           aes(x=month,y=count,color = product_category_name_english)
+           )+
+ theme(axis.text.x = element_text(angle = 90)) + 
+  labs(x = "日期",y = "金額",title = "總金額月趨勢圖")+
+  theme_bw()
+```
+
+
+###特定類別成長趨勢
+隨著時間增長，我們可看出健康食品的銷量是逐漸成長的，其餘前四名皆有下滑的趨勢，另外從表中我們可發現，在年末時，客人喜歡購買寢具與家具裝飾用品來迎接新的一年，而在2018年初，普遍五大熱門類別商品皆有很高的銷售金額，這可能與巴西嘉年華有關，此時期店家們多會打出優惠折扣，進而拉抬銷量
+```{r}
+#bed_bath_table
+K=
+  H_data%>%
+  filter(product_category_name_english=="bed_bath_table")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,col='red',size=60)
+  ) +
+  # geom_abline(x=month,y=total,col='red')+
+  labs(x = "日期",y = "金額",title = "bed_bath_table月趨勢圖")+ guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+```
+
+
+```{r}
+#health_beauty
+K=
+  H_data%>%
+  filter(product_category_name_english=="health_beauty")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,col="orange",size=60)
+  ) +
+  labs(x = "日期",y = "金額",title = "health_beauty月趨勢圖")+guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+```
+
+
+```{r}
+#computers_accessories
+K=
+  H_data%>%
+  filter(product_category_name_english=="computers_accessories")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,color ='yellow',size=60)
+  ) +
+  labs(x = "日期",y = "金額",title = "computers_accessories月趨勢圖")+guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+```
+
+
+```{r}
+#furniture_decor
+K=
+  H_data%>%
+  filter(product_category_name_english=="furniture_decor")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,col = "green",size=60)
+  ) +
+  labs(x = "日期",y = "金額",title = "furniture_decor月趨勢圖")+guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+
+```
+
+```{r}
+#watches_gifts
+K=
+  H_data%>%
+  filter(product_category_name_english=="watches_gifts")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,col= 'blue',size=60)
+  ) +
+  labs(x = "日期",y = "金額",title = "watches_gifts月趨勢圖")+guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+```
+
+
+
+```{r}
+#sports_leisure
+K=
+  H_data%>%
+  filter(product_category_name_english=="sports_leisure")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,col = 'purple',size=60)
+  ) +
+  labs(x = "日期",y = "金額",title = "sports_leisure月趨勢圖")+guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+
+```
+
+
+```{r}
+#housewares
+K=
+  H_data%>%
+  filter(product_category_name_english=="housewares")%>%
+  group_by(month)%>%
+  summarise(total = sum(total))
+
+ggplot(data = K)+
+  geom_point(
+    aes(x=month,y=total,col='pink',size=150)
+  ) +
+  labs(x = "日期",y = "金額",title = "housewares月趨勢圖")+guides(color=FALSE,size=FALSE)+
+  theme_bw()+
+  theme_light()+
+  theme(axis.text.x = element_text(angle = -60,size=20)) +
+  theme(axis.text.y = element_text(size=30))+
+  theme(axis.title.y = element_text(size=30)) +
+  theme(title = element_text(size=30))
+```
