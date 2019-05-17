@@ -167,7 +167,7 @@ What are the definiion of `logit` & `logistic function`? What is the relationshi
 logit: q=log(p/1-p)  logit指的是函數運算完的結果(也就是f(x)線性組合)，其範圍在負無限大到正無限大。 
 logistic: p=1/(1+exp(-q)) ，其中q=log(p/1-p) logistic是非線性的，其推出來的結果為機率，因此該範圍在0到1之間。
 
-因logit原本只是一個函數，若我們將他假設成一個線性函數，使用最大概似估計法進行估計，即會成為logistic regression。logit跟logistic function之間可以互相轉化，像是logistic function可以把logit回推成probability(y=1的機率)。
+因logit原本只是一個函數，若我們將他假設成一個線性函數，使用最大概似估計法進行估計，即會成為logistic regression。logit跟logistic之間可以互相轉化，像是運用logistic function可以把logit回推成probability(y=1的機率)。
 
 
 <br><br><br><hr>
