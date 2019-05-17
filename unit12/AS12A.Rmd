@@ -1,0 +1,176 @@
+---
+title: UNIT12A：邏輯式性回歸 Logistic Regression
+author: 中山大學管理學院 卓雍然
+date: "`r Sys.time()`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: flatly
+    css: style.css
+---
+組員：`B044030015 許效軒`  `B046060036 王文弘`  `B054012011 黃冠綾`  `B046060027 姚詠馨`  `B046060035 張文瑜`  `M074020024 楊長舜`
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=F}
+# Formating Codes.  Do not change the codes in this chunk !!
+rm(list=ls(all=T))
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_knit$set(global.par = TRUE)
+par(cex=0.8)
+options(scipen=20, digits=5, width=80)
+if(!require(pacman)) install.packages("pacman")
+```
+<hr>
+
+```{r results='hide', message=FALSE, warning=FALSE}
+pacman::p_load(ggplot2, dplyr)
+```
+<br><hr>
+
+### 【A】簡單案例
+
++ 資料：Binary Target Variable
+
+```{r}
+D = read.csv("data/quality.csv")  # Read in dataset
+D = D[,c(14, 4, 5)]
+names(D) = c("y", "x1", "x2") #prename
+table(D$y)
+```
+
++ 方法：`glm(, family=binomial)` Generalize Liner Model
+
+```{r}
+glm1 = glm(y~x1+x2, D, family=binomial) #binomial連結函數
+summary(glm1)
+```
+
+```{r}
+# 係數的向量
+b = coef(glm1); b   # extract the regression coef
+```
+
++ $logit = f(x) = b_0 + b_1 x_1 + b_2 x_2$  
+用這公式就可以算出logit
+
++ $odd = Exp(logit)$
+
++ $Pr[y = 1] = prob = \frac{odd}{1+odd}$
+
+Given `x1=3, x2=4`, what are the predicted logit, odd and probability?
+```{r}
+logit = sum(b * c(1, 3, 4)) #x1=3, x2=4 1是常數項(因為b0要乘1) #這邊是向量*向量
+
+odd = exp(logit)
+prob = odd/(1+odd)
+c(logit=logit, odd=odd, prob=prob)
+# 當x1=3, x2=4 模型會預估y=1的機率是0.12871
+```
+
+<span style="font-size:24px"> `r "\U1F5FF"` : </span>
+What if `x1=2, x2=3`?
+
+```{r}
+logit = sum(b * c(1, 2, 3)) #x1=2, x2=3, 1是常數項(因為b0要乘1) 
+odd = exp(logit)
+prob = odd/(1+odd)
+c(logit=logit, odd=odd, prob=prob)
+# 當x1=2, x2=3 ,模型會預估y=1的機率是0.11056 
+```
+<br>
+
+<span style="font-size:24px"> `r "\U1F4A1"` : </span>
+`glm(family=binomial)`的功能：在 $\{x\}$ 的空間之中，找出區隔 $y$ 的(類別)界線
+
+We can plot the line of `logit = 0` or `odd = 1, prob = 0.5` on the plane of $X$
+```{r fig.width=3.6, fig.height=3.6}
+par(cex=0.8, mar=c(4,4,1,1))
+plot(D$x1, D$x2, col=2+D$y, pch=20, cex=1.2, xlab="X1", ylab="X2")
+abline(-b[1]/b[3], -b[2]/b[3], col="blue", lty=3)
+# y是0或1 就看顏色
+# 虛線就是b_0 + b_1 x_1 + b_2 x_2=0的斜線 就是機率=0.5的線,試著在這空間中找到切開後,紅跟綠點分的比較清楚的界線
+# 越往上,猜是綠的機率越高;越往下,猜是紅的機率越高
+```
+
+Furthermore, we can translate probability, logit and coefficents to intercept & slope ...
+
+$$f(x) = b_0 + b_1 x_1 + b_2 x_2 \; \Rightarrow \;  x_2 = \frac{f - b_0}{b_2} - \frac{b_1}{b_2}x_1$$
+
+```{r  fig.width=3.6, fig.height=3.6}
+p = seq(0.1,0.9,0.1)
+logit = log(p/(1-p))
+data.frame(prob = p, logit)
+```
+
+then mark the contours of proabilities into the scatter plot 
+```{r  fig.width=3.6, fig.height=3.6}
+par(cex=0.8, mar=c(4,4,1,1))
+plot(D$x1, D$x2, col=2+D$y,
+     pch=20, cex=1.3, xlab='X1', ylab='X2')
+for(f in logit) {
+  abline((f-b[1])/b[3], -b[2]/b[3], col=ifelse(f==0,'blue','cyan')) }
+```
+
+<span style="font-size:24px"> `r "\U1F5FF"` : </span>
+What do the blue/cyan lines means?<br>
+藍線代表當logit為0(y=1的機率為0.5時);  
+而青線代表點為綠色的各個機率,最下面的線猜是綠色(y=1)的機率為0.1,最上面的線機率為0.9  
+
+<span style="font-size:24px"> `r "\U1F5FF"` : </span>
+Given any point in the figure above, how can you tell its (predicted) probability approximately?<br>  
+給定X1,X2，根據其點靠近的線上，來判別其為綠色(y=1)時的機率大小。
+
+<br><hr>
+
+### 【B】 邏輯式回歸
+
+##### 機率、勝率(Odd)、Logit
+
++ Odd =  $p/(1-p)$
+
++ Logit = $log(odd)$ = $log(\frac{p}{1=p})$
+
++ $o = p/(1-p)$ ; $p = o/(1+o)$ ;  $logit = log(o)$
+
+```{r fig.height=3.6, fig.width=7}
+par(cex=0.8, mfcol=c(1,2))
+curve(x/(1-x), 0.02, 0.98, col='cyan',lwd=2, 
+    ylab='odd', xlab='p')
+abline(v=seq(0,1,0.1), h=seq(0,50,5), col='lightgray', lty=3)
+curve(log(x/(1-x)), 0.005, 0.995, lwd=2, col='purple', 
+      ylab="logit",xlab='p')
+abline(v=seq(0,1,0.1), h=seq(-5,5,1), col='lightgray', lty=3)
+```
+<br>
+
+##### Logistic Function & Logistic Regression
+
++ Linear Model: $y = f(x) = b_0 + b_1x_1 + b_2x_2 + ...$
+
++ General Linear Model(GLM): $y = Link(f(x))$ 
+
++ Logistic Regression: $logit(y) = log(\frac{p}{1-p}) = f(x) \text{ where } p = prob[y=1]$ 
+
++ Logistic Function: $Logistic(F_x) = \frac{1}{1+Exp(-F_x)} = \frac{Exp(F_x)}{1+Exp(F_x)}$
+
+```{r  fig.width=6, fig.height=3.6}
+par(cex=0.8, mfrow=c(1,1))
+curve(1/(1+exp(-x)), -5, 5, col='blue', lwd=2,main="Logistic Function",
+      xlab="f(x): the logit of y = 1", ylab="the probability of y = 1")
+abline(v=-5:5, h=seq(0,1,0.1), col='lightgray', lty=2)
+abline(v=0,h=0.5,col='pink')
+points(0,0.5,pch=20,cex=1.5,col='red')
+```
+
+<span style="font-size:24px"> `r "\U1F5FF"` : </span>
+What are the definiion of `logit` & `logistic function`? What is the relationship between them?<br>  
+  
+logit: q=log(p/1-p)  logit指的是函數運算完的結果(也就是f(x)線性組合)，其範圍在負無限大到正無限大。 
+logistic: p=1/(1+exp(-q)) ，其中q=log(p/1-p) logistic是非線性的，其推出來的結果為機率，因此該範圍在0到1之間。
+
+因logit原本只是一個函數，若我們將他假設成一個線性函數，使用最大概似估計法進行估計，即會成為logistic regression。logit跟logistic function之間可以互相轉化，像是logistic function可以把logit回推成probability(y=1的機率)。
+
+
+<br><br><br><hr>
+
+
+
