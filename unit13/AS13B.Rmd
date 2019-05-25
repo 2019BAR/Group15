@@ -1,0 +1,236 @@
+---
+title: UNIT13B：類別模型、預測機率與商業決策 
+subtitle: 模型的準確性
+author: "第 15 組"
+date: "`r Sys.time()`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: flatly
+    css: style.css
+---
+組員：`B044030015 許效軒`  `B046060036 王文弘`  `B054012011 黃冠綾`  `B046060027 姚詠馨`  `B046060035 張文瑜`  `M074020024 楊長舜`
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=F}
+# Formating Codes.  Do not change the codes in this chunk !!
+rm(list=ls(all=T))
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_knit$set(global.par = TRUE)
+par(cex=0.8)
+options(scipen=20, digits=5, width=80)
+if(!require(pacman)) install.packages("pacman")
+```
+<hr>
+
+```{r results='hide', message=FALSE, warning=FALSE}
+pacman::p_load(caTools, ggplot2, dplyr)
+D = read.csv("data/quality.csv")  # Read in dataset
+set.seed(88)
+split = sample.split(D$PoorCare, SplitRatio = 0.75)  # split vector
+TR = subset(D, split == TRUE)
+TS = subset(D, split == FALSE)
+glm1 = glm(PoorCare ~ OfficeVisits + Narcotics, TR, family=binomial)
+summary(glm1)
+```
+<br><hr>
+
+
+### 【A】傳統準確性指標
+
+![Fig 13.1 - 混淆矩陣與模型準確性指標](Fig13.1.JPG)
+
+<br>
+
+##### Training Data
+
+**預測機率 Predicted Probability (Training)**
+```{r fig.height=3.2, fig.width=6.4}
+par(cex=0.8)
+pred = predict(glm1, type="response")#要算機率一定要寫這個type
+hist(pred)
+abline(v=0.5, col='red')
+```
+
+**混淆矩陣 Confusion Matrix (Training)**
+```{r}
+cmx = table(Acture=TR$PoorCare, Predict=pred > 0.5)
+# 臨界機率為0.5
+cmx
+```
+
+**模型準確性指標 Accuracy Matrices (Training)**
+```{r}
+A2x2 = function(x, k=3) c(
+  accuracy = sum(diag(x))/sum(x),
+  sensitivity = as.numeric(x[2,2]/rowSums(x)[2]),
+  specificity = as.numeric(x[1,1]/rowSums(x)[1])
+  ) %>% round(k) #function 小數點三位
+A2x2(cmx)
+```
+<br>
+
+##### Testing Data
+
+**預測機率 Predicted Probability (Testing)**
+```{r fig.height=3.2, fig.width=6.4}
+par(cex=0.8)
+pred2 = predict(glm1, newdata=TS, type="response") #testing data要放入newdata
+hist(pred2, 10)
+abline(v=0.5, col='red')
+```
+
+**混淆矩陣 Confusion Matrix (Testing)**
+```{r}
+cmx2 = table(Acture=TS$PoorCare, Predict=pred2 > 0.5)
+cmx2
+```
+
+**模型準確性指標 Accuracy Matrices (Testing)**
+```{r}
+sapply(list(Train=cmx, Test=cmx2), A2x2)
+# 用sapply 對序列中(list)都呼叫後面的function
+# 如果training比testing好很多,要考慮過度是配的問題
+```
+<br><br><hr>
+
+### 【B】預測機率分佈、臨界機率、混淆矩陣
+
+![Fig 13.2 - 預測機率分佈、臨界機率、混淆矩陣](Fig13.2.JPG)
+
+<br>
+
+**預測機率分佈 (DPP) - Distribution of Predicted Probability (Training)**
+```{r fig.height=3.2, fig.width=7}
+data.frame(y=factor(TR$PoorCare), pred=pred) %>% #要把y作為類別變數,x軸是預測機率
+  ggplot(aes(x=pred, fill=y)) + 
+  geom_histogram(bins=20, col='white', position="stack", alpha=0.5) +
+  ggtitle("Distribution of Predicted Probability (DPP)") +
+  xlab("predicted probability")
+
+# 建議把dpp畫出來再來做臨界機率的劃分
+```
+<br><br><br><hr>
+
+### 【C】作業曲線(ROC)與辨識率(AUC)
+
+**ROC - Receiver Operation Curve**
+```{r fig.height=4, fig.width=7.2}
+par(mfrow=c(1,2), cex=0.8)
+trAUC = colAUC(pred, y=TR$PoorCare, plotROC=T)
+tsAUC = colAUC(pred2, y=TS$PoorCare, plotROC=T)
+# 要畫roc auc 可以用上述函數(需知道預測機率跟目標函數)
+```
+
+**AUC - Area Under Curve**
+```{r}
+c(trAUC, tsAUC)
+```
+<br><hr>
+
+<p class="qiz">
+<span style="font-size:24px">`r "\U1F5FF"` 練習： </span><br>
+使用`TR$MemberID`以外的所有欄位，建立一個邏輯式回歸模型來預測`PoorCare`，並：<br>
+&emsp; 【A】 分別畫出`Training`和`Testing`的`DPP`<br>
+&emsp; 【B】 分別畫出`Training`和`Testing`的`ROC`<br>
+&emsp; 【C】 分別算出`Training`和`Testing`的`ACC`、`SENS`和`SPEC`<br>
+&emsp; 【D】 分別算出`Training`和`Testing`的`AUC`<br>
+&emsp; 【E】 跟用兩個預測變數的模型相比，這一個模型有比較準嗎？<br>
+&emsp; 【F】 為什麼它比較準(或比較不準)呢？<br><br>
+</p class="qiz">
+
+<br><br><br><hr>
+
+
+# 使用`TR$MemberID`以外的所有欄位，建立一個邏輯式回歸模型來預測`PoorCare`
+```{r}
+set.seed(88)
+split = sample.split(D$PoorCare, SplitRatio = 0.75)  # split vector
+TR = subset(D, split == TRUE)
+TS = subset(D, split == FALSE)
+glm1 = glm(PoorCare ~ InpatientDays +ERVisits+ OfficeVisits + Narcotics + DaysSinceLastERVisit + Pain + TotalVisits + ProviderCount + MedicalClaims + ClaimLines + StartedOnCombination + AcuteDrugGapSmall, TR, family=binomial)
+summary(glm1)
+```
+
+
+# 分別畫出`Training`和`Testing`的`DPP`  
+**預測機率分佈 (DPP) - Distribution of Predicted Probability (Training)**  
+Training Data
+```{r fig.height=3.2, fig.width=7}
+# 預測機率 Predicted Probability (Training)  
+pred = predict(glm1, type="response")
+data.frame(y=factor(TR$PoorCare), pred=pred) %>% 
+  ggplot(aes(x=pred, fill=y)) + 
+  geom_histogram(bins=20, col='white', position="stack", alpha=0.5) +
+  ggtitle("Distribution of Predicted Probability (DPP)") +
+  xlab("predicted probability")
+
+```
+Testing Data
+```{r fig.height=3.2, fig.width=7}
+# 預測機率 Predicted Probability (Training)  
+pred2 = predict(glm1, newdata=TS, type="response") #testing data要放入newdata
+data.frame(y=factor(TS$PoorCare), pred=pred2) %>% 
+  ggplot(aes(x=pred, fill=factor(TS$PoorCare))) + 
+  geom_histogram(bins=20, col='white', position="stack", alpha=0.5) +
+  ggtitle("Distribution of Predicted Probability (DPP)") +
+  xlab("predicted probability")
+
+```
+
+# 分別畫出`Training`和`Testing`的`ROC`   
+**ROC - Receiver Operation Curve**
+ 
+```{r fig.height=4, fig.width=7.2}
+par(mfrow=c(1,2), cex=0.8)
+#Training Data 
+trAUC = colAUC(pred, y=TR$PoorCare, plotROC=T)
+#Testing Data  
+tsAUC = colAUC(pred2, y=TS$PoorCare, plotROC=T)
+```
+ 
+# 分別算出`Training`和`Testing`的`ACC`、`SENS`和`SPEC`
+**模型準確性指標 Accuracy Matrices **  
+  
++ Training data   
+accuracy 0.798   
+sensitivity  0.440   
+specificity  0.919  
+  
+  
++ Testing Data   
+accuracy 0.844   
+sensitivity  0.500   
+specificity   0.958
+```{r}
+# 混淆矩陣 Confusion Matrix (Training)
+cmx = table(Acture=TR$PoorCare, Predict=pred > 0.5)
+# 臨界機率為0.5
+A2x2 = function(x, k=3) c(
+  accuracy = sum(diag(x))/sum(x),
+  sensitivity = as.numeric(x[2,2]/rowSums(x)[2]),
+  specificity = as.numeric(x[1,1]/rowSums(x)[1])
+  ) %>% round(k) 
+cmx2 = table(Acture=TS$PoorCare, Predict=pred2 > 0.5)
+sapply(list(Train=cmx, Test=cmx2), A2x2)
+
+```
+
+# 分別算出`Training`和`Testing`的`AUC`  
+**AUC - Area Under Curve**  
+  
++ Training data   
+Area Under Curve 0.87568
+  
+
++ Testing Data   
+Area Under Curve 0.86458
+```{r}
+c(trAUC, tsAUC)
+```
+
+# 跟用兩個預測變數的模型相比，這一個模型有比較準嗎？
+我們比較準確性指標(acc),發現放入全部變數的預測模型0.844>用兩個預測變數的模型0.812,放入全部變數的模型比較準。  
+另外從辨識率來看，多變數模型AUC較大（0.86458＞0.79948），因此模型較能夠正確區辨它們的機率。
+
+# 為什麼它比較準(或比較不準)呢？  
+因為其訓練所參考的變數較多,所以預測上會更加準確；但考量入多變數也需注意是否有自我相關問題，有可能因此產生自我相關性偏誤或過度配適。

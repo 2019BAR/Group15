@@ -1,6 +1,6 @@
 ---
 title: UNIT12A：邏輯式性回歸 Logistic Regression
-author: 中山大學管理學院 卓雍然
+author: "第 15 組"
 date: "`r Sys.time()`"
 output: 
   html_document:
