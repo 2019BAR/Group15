@@ -1,0 +1,136 @@
+---
+title: "Final"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+load("final.rdata")
+```
+
+## k-means分群：
+### 資料前處理：
+```{r pressure, echo=FALSE}
+AA = CData
+# 依照不同的商品類別號生出的 cat2A 資料來作分群
+# AA = cat2A
+AA[,c(2:7, 10)] = scale(AA[,c(2:7, 10)])
+
+AA$age = factor(AA$age)
+AA$area = factor(AA$area)
+AA$buy = factor(AA$buy)
+DummyTable <- model.matrix( ~ age + area + buy, data = AA)
+AA <- cbind(
+  AA[, -c(1, 8, 9, 11:15)],
+  DummyTable[, -1]
+)
+AA$amount[is.na(AA$amount)] = 0
+```
+
+### 開始分群：
+```{r}
+set.seed(500)
+K <- kmeans(AA, 3)
+ClusterResult <- cbind(
+  AA,
+  K$cluster
+) %>% as.data.frame()
+colnames(ClusterResult)[ncol(ClusterResult)] <- 'Cluster'
+table(ClusterResult$Cluster)
+A <- CData[, -c(12:15)] %>%
+  cbind(K$cluster) %>%
+  as.data.frame()
+colnames(A)[ncol(A)] <- 'Cluster'
+
+ggplot(data = A) +
+  geom_bar(aes(x = age, fill = age)) +
+  facet_wrap( ~ Cluster) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.title = element_blank())
+
+ggplot(data = A) +
+  geom_bar( aes( x = area, fill = area)) +
+  facet_wrap( ~ Cluster) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.title = element_blank())
+
+ggplot(data = A) +
+  geom_bar(aes(x = buy, fill = buy)) +
+  facet_wrap( ~ Cluster) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.title = element_blank())
+```
+
+## 計算顧客終身價值、預期效益：
+```{r}
+# Target = CData
+# app, cloth, napkin 皆為已選定的 TA 群
+Target = app
+# Target = cloth
+# Target = napkin
+
+g = 0.6     # (稅前) 獲利率
+N = 4       # 期數
+d = 0.075   # 利率
+Target$CLV = g * Target$Rev * rowSums(sapply(
+  0:N, function(i) (Target$pred/(1 + d))^i ) )
+
+summary(Target$CLV)
+
+sapply(Target[, 13:15], tapply, Target$Cluster, mean)
+
+par(mar = c(3, 3, 4, 2), cex = 0.8)
+boxplot(log(CLV) ~ Cluster, Target, main = "CLV by Groups")
+
+cost = 20       # 成本
+effect = 0.6    # 效益：下一期的購買機率
+
+Target$ExpReturn = (effect - Target$pred) * Target$Rev - cost
+summary(Target$ExpReturn)
+
+Target %>% arrange(desc(ExpReturn)) %>% dplyr::select(cust, ExpReturn) %>% head(15)
+sum(Target$ExpReturn > 0, na.rm = T)                    # 可實施對象
+sum(Target$ExpReturn[Target$ExpReturn > 0], na.rm = T)  # 預期報酬
+
+Target$ExpReturn = (effect - Target$pred) * Target$Rev - cost
+filter(Target, Target$ExpReturn > 0) %>%
+  group_by(Cluster) %>% summarise(
+    No.Target = n(),
+    AvgROI = mean(ExpReturn),
+    TotalROI = sum(ExpReturn) ) %>% data.frame
+```
+
+## 成本效益分析：
+```{r}
+library(manipulate)
+library(latex2exp)
+MRG = 0.3
+
+manipulate({
+  do.call(rbind, lapply(seq(5, 40, 0.5), function(c){
+    p = m * plogis((10 / a)*(c - b))
+    # CData %>% mutate(
+    app %>% mutate(
+    # cloth %>% mutate(
+    # napkin %>% mutate(
+      PI = ifelse(pred <= (1 - p), p, 1 - pred) * Rev - c
+    ) %>%
+      group_by(Cluster) %>% summarise(
+        Cost = c,
+        Group.Sz = n(),
+        No.Target = sum(PI > 0),
+        AvgROI = mean(PI[PI > 0]),
+        TotalROI = sum(PI[PI > 0])
+      ) } ) ) %>% 
+    ggplot(aes(x = Cost, y = TotalROI, col = factor(Cluster))) +
+    geom_line(size = 1.2) +
+    ggtitle("Cost Effeciency per Segment ")
+},
+m = slider(0.05, 0.25,  0.20, step = 0.01),
+a = slider(10, 30, 20, step = 1),
+b = slider(4, 20, 15, step = 1)
+) 
+```
